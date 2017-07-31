@@ -92,7 +92,7 @@ class TMDB(object):
             DICT of meta data found on TMDB
             Returns None when not found or error requesting page
         '''      
-        url = "%s/%s?language=%s&api_key=%s&%s" % (self.url_prefix, method, self.lang, self.api_key, values)
+        url = "%s/%s?language=%s&api_key=%s&%s" % (self.url_prefix, method, self.lang, self.tmdb_api_key, values)
         addon.log('Requesting TMDB : %s' % url, 0)
         try:
             meta = simplejson.loads(net.http_GET(url,{"Accept":"application/json"}).content)
