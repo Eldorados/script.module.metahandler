@@ -17,6 +17,7 @@
     <setting id="tmdb_backdrop_size" label="Backdrop Size" type="labelenum" default="original" values="w300|w780|w1280|original"/>
     <setting type="lsep" label="TMDB API Key" />
     <setting id="tmdb_api_key" type="text" label="Enter Your API Key" default="" option="hidden"/>
+    <setting id="override_keys" type="bool" label="Override TMDB keys from all addons" default="False"/>
     <setting type="lsep" label="OMDB API Key" />
     <setting id="omdbapi_fallback" type="bool" label="Enable omdbapi.com Fallback" default="true"/>
     <setting id="omdb_api_key" type="text" label="Enter your API Key" default="ea23cea2" option="hidden" enable="!eq(-1,false)"/>
