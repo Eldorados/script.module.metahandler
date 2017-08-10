@@ -100,7 +100,7 @@ class MetaData:
         
         # TMDB constants
         self.tmdb_image_url = ''
-        self.tmdb_api_key = tmdb_api_key
+        self.tmdb_api_key = common.addon.get_setting('tmdb_api_key') if common.addon.get_setting('override_keys') == 'true' else tmdb_api_key
         self.omdb_api_key = omdb_api_key
                
         if settings_path:
