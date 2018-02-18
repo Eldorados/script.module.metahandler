@@ -69,7 +69,7 @@ class TMDB(object):
         addon.log('Requesting TMDB : %s' % url, 0)
         try:
             meta = simplejson.loads(net.http_GET(url,{"Accept":"application/json"}).content)
-        except Exception, e:
+        except Exception as e:
             addon.log("Error connecting to TMDB: %s " % e, 4)
             return None
 
@@ -96,7 +96,7 @@ class TMDB(object):
         addon.log('Requesting TMDB : %s' % url, 0)
         try:
             meta = simplejson.loads(net.http_GET(url,{"Accept":"application/json"}).content)
-        except Exception, e:
+        except Exception as e:
             addon.log("Error connecting to TMDB: %s " % e, 4)
             return None
 
@@ -112,7 +112,7 @@ class TMDB(object):
         strptime = lambda date_string, format: datetime(*(time.strptime(date_string, format)[0:6]))
         try:
             a = strptime(string, in_format).strftime(out_format)
-        except Exception, e:
+        except Exception as e:
             addon.log('************* Error Date conversion failed: %s' % e, 4)
             return None
         return a
@@ -169,7 +169,7 @@ class TMDB(object):
             addon.log('Requesting OMDB : %s' % url, 0)
             meta = simplejson.loads(net.http_GET(url).content)
             addon.log('OMDB Meta: %s' % meta, 0)
-        except Exception, e:
+        except Exception as e:
             addon.log("Error connecting to OMDB: %s " % e, 4)
             return {}
 
