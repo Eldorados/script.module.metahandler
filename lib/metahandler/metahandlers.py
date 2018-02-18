@@ -106,7 +106,7 @@ class MetaData:
         if settings_path:
             self.path = xbmc.translatePath(settings_path)
         else:
-            self.path = common.profile_path();
+            self.path = common.profile_path()
         
         self.cache_path = make_dir(self.path, 'meta_cache')
 
@@ -989,7 +989,6 @@ class MetaData:
             except Exception as e:
                 meta['trailer'] = ''
                 common.addon.log('Failed to set trailer: %s' % e, 3)
-                pass
     
             #Ensure we are not sending back any None values, XBMC doesn't like them
             meta = self._remove_none_values(meta)
