@@ -19,6 +19,7 @@ except ImportError:
     import queue
 net = Net()
 addon = Addon('script.module.metahandler')
+tmdb_common = Addon('metadata.common.themoviedb.org')
 
 class TMDB(object):
     '''
@@ -33,6 +34,23 @@ class TMDB(object):
         self.view = view
         self.lang = lang
         self.tmdb_api_key = tmdb_api_key
+        self.tmdb_common_ver = tmdb_common.get_version()
+        self.tmdb_api_key_ver = addon.get_setting('tmdb_api_key_ver')
+        
+        if self.tmdb_api_key == '' or not self.tmdb_api_key_ver == self.tmdb_common_ver:
+            try:
+                import os, xbmcvfs
+                self.tmdb_common_path = tmdb_common.get_path()
+                self.tmdb_common_xml = os.path.join(self.tmdb_common_path,'tmdb.xml')
+                f = xbmcvfs.File(self.tmdb_common_xml)
+                b = f.read()
+                f.close()
+                self.tmdb_api_key = re.search('api_key=([a-zA-Z0-9]+)', b).groups()[0]
+                addon.set_setting('tmdb_api_key_ver', self.tmdb_common_ver)
+                addon.set_setting('tmdb_api_key', self.tmdb_api_key)
+            except Exception as e:
+                addon.log("Error scraping TMDB API Key: %s " % e, 4)
+                
         self.omdb_api_key = omdb_api_key
         self.url_prefix = 'http://api.themoviedb.org/3'
         self.omdb_url = 'http://www.omdbapi.com/?apikey=%s' % self.omdb_api_key

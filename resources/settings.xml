@@ -18,6 +18,7 @@
     <setting type="lsep" label="TMDB API Key" />
     <setting id="tmdb_api_key" type="text" label="Enter Your API Key" default="" option="hidden"/>
     <setting id="override_keys" type="bool" label="Override TMDB keys from all addons" default="False"/>
+    <setting id="tmdb_api_key_ver" type="text" label="tmdb_api_key_ver" default="0" visible="false"/>
     <setting type="lsep" label="OMDB API Key" />
     <setting id="omdbapi_fallback" type="bool" label="Enable omdbapi.com Fallback" default="true"/>
     <setting id="omdb_api_key" type="text" label="Enter your API Key" default="f4adba76" option="hidden" enable="!eq(-1,false)"/>
