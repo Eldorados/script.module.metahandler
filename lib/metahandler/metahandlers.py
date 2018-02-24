@@ -106,7 +106,7 @@ class MetaData:
         if settings_path:
             self.path = xbmc.translatePath(settings_path)
         else:
-            self.path = common.profile_path();
+            self.path = common.profile_path()
         
         self.cache_path = make_dir(self.path, 'meta_cache')
 
@@ -220,7 +220,7 @@ class MetaData:
                 else:
                     common.addon.log('No SQLite rows requiring update')                    
            
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error updating cover and backdrop columns: %s' % e, 4)
             pass
         
@@ -586,7 +586,7 @@ class MetaData:
         #strptime = lambda date_string, format: datetime(*(time.strptime(date_string, format)[0:6]))
         try:
             a = strptime(string, in_format).strftime(out_format)
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error Date conversion failed: %s' % e, 4)
             return None
         return a
@@ -639,7 +639,7 @@ class MetaData:
                  fh = open(mypath, 'wb')
                  fh.write(data)  
                  fh.close()
-            except Exception, e:
+            except Exception as e:
                 common.addon.log('Image download failed: %s ' % e, 4)
         else:
             if url is not None:
@@ -711,7 +711,7 @@ class MetaData:
         try:    
             self.dbcur.execute(sql_select)
             matchedrow = self.dbcur.fetchone()
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error selecting from cache db: %s' % e, 4)
             return None
 
@@ -738,7 +738,7 @@ class MetaData:
 
             self.dbcur.execute(sql_insert, (setting, value))
             self.dbcon.commit()
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error updating cache db: %s' % e, 4)
             return None
             
@@ -813,7 +813,7 @@ class MetaData:
         try:    
             self.dbcur.execute(sql_select)
             matchedrow = self.dbcur.fetchone()            
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error selecting from cache db: %s' % e, 4)
             return None
         
@@ -852,7 +852,7 @@ class MetaData:
         try:
             self.dbcur.execute(sql_insert, (addon_id, movie_covers, tv_covers, tv_banners, movie_backdrops, tv_backdrops, last_update))
             self.dbcon.commit()            
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error inserting into cache db: %s' % e, 4)
             return
 
@@ -898,7 +898,7 @@ class MetaData:
         try:    
             self.dbcur.execute(sql_update)
             self.dbcon.commit()
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error updating cache db: %s' % e, 4)
             return
                     
@@ -986,10 +986,9 @@ class MetaData:
                 if trailer_id:
                     meta['trailer'] = 'plugin://plugin.video.youtube/?action=play_video&videoid=%s' % trailer_id
                     
-            except Exception, e:
+            except Exception as e:
                 meta['trailer'] = ''
                 common.addon.log('Failed to set trailer: %s' % e, 3)
-                pass
     
             #Ensure we are not sending back any None values, XBMC doesn't like them
             meta = self._remove_none_values(meta)
@@ -1055,7 +1054,7 @@ class MetaData:
     
             common.addon.log('Returned Meta: %s' % meta, 0)
             return meta  
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error formatting meta: %s' % e, 4)
             return meta  
 
@@ -1170,7 +1169,7 @@ class MetaData:
         try:    
             self.dbcur.execute(sql_select)
             matchedrow = self.dbcur.fetchone()            
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error selecting from cache db: %s' % e, 4)
             return None
         
@@ -1213,7 +1212,7 @@ class MetaData:
         try:
             self.dbcur.execute(sql_select)            
             matchedrow = self.dbcur.fetchone()
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error selecting from cache db: %s' % e, 4)
             return None
             
@@ -1291,7 +1290,7 @@ class MetaData:
             #Commit all transactions
             self.dbcon.commit()
             common.addon.log('SQL INSERT Successfully Commited', 0)
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error attempting to insert into %s cache table: %s ' % (table, e), 4)
             common.addon.log('Meta data: %s' % meta, 4)
             pass 
@@ -1330,7 +1329,7 @@ class MetaData:
         try:
             self.dbcur.execute(sql_delete)
             self.dbcon.commit()
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error attempting to delete from cache table: %s ' % e, 4)
             pass    
         
@@ -1499,7 +1498,7 @@ class MetaData:
         try:
             if imdb_id:
                 tvdb_id = tvdb.get_show_by_imdb(imdb_id)
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error retreiving from thetvdb.com: %s ' % e, 4)
             tvdb_id = ''
             pass
@@ -1514,7 +1513,7 @@ class MetaData:
                 #if year:
                 #    name = name + ' ' + year
                 show_list=tvdb.get_matching_shows(name)
-            except Exception, e:
+            except Exception as e:
                 common.addon.log('************* Error retreiving from thetvdb.com: %s ' % e, 4)
                 show_list = []
                 pass
@@ -1537,7 +1536,7 @@ class MetaData:
                             imdb_id = self._clean_string(junk3)
                         break
                         
-                except Exception, e:
+                except Exception as e:
                     common.addon.log('************* Error retreiving from thetvdb.com: %s ' % e, 4)
 
         if tvdb_id:
@@ -1545,7 +1544,7 @@ class MetaData:
 
             try:
                 show = tvdb.get_show(tvdb_id)
-            except Exception, e:
+            except Exception as e:
                 common.addon.log('************* Error retreiving from thetvdb.com: %s ' % e, 4)
                 show = None
                 pass
@@ -1781,7 +1780,7 @@ class MetaData:
         try:     
             self.dbcur.execute(sql_select)
             matchedrow = self.dbcur.fetchone()
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error attempting to select from tvshow_meta table: %s ' % e, 4)
             pass   
 
@@ -1832,7 +1831,7 @@ class MetaData:
         try:
             self.dbcur.execute(sql_select)
             matchedrow = self.dbcur.fetchone()
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error attempting to select from tvshow_meta table: %s ' % e, 4)
             pass
                         
@@ -1946,7 +1945,7 @@ class MetaData:
             
             self.dbcur.execute(sql_select)
             matchedrow = self.dbcur.fetchone()
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error attempting to select from Episode table: %s ' % e, 4)
             return None
                         
@@ -1983,7 +1982,7 @@ class MetaData:
         try:
             self.dbcur.execute(sql_delete)
             self.dbcon.commit()
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error attempting to delete from episode cache table: %s ' % e, 4)
             pass
 
@@ -2027,7 +2026,7 @@ class MetaData:
         else:
             try:
                 episode = tvdb.get_episode_by_season_ep(tvdb_id, season, episode)
-            except Exception, e:
+            except Exception as e:
                 common.addon.log('************* Error retreiving from thetvdb.com: %s ' % e, 4)
                 episode = None
                 pass
@@ -2092,7 +2091,7 @@ class MetaData:
                     common.addon.log('Episode matched row found, deleting table entry', 0)
                     common.addon.log('SQL Delete: %s' % sql_delete, 0)
                     self.dbcur.execute(sql_delete) 
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error attempting to delete from cache table: %s ' % e, 4)
             common.addon.log('Meta data: %' % meta, 4)
             pass        
@@ -2106,7 +2105,7 @@ class MetaData:
                                 meta['rating'], meta['premiered'], meta['poster'], meta['overlay'])
             )
             self.dbcon.commit()
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error attempting to insert into episodes cache table: %s ' % e, 4)
             common.addon.log('Meta data: %s' % meta, 4)
             pass        
@@ -2142,7 +2141,7 @@ class MetaData:
         try:    
             self.dbcur.execute(sql_update)
             self.dbcon.commit()
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error attempting to update table: %s ' % e, 4)
             pass          
 
@@ -2252,7 +2251,7 @@ class MetaData:
         try:
             self.dbcur.execute(sql_update)
             self.dbcon.commit()
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error attempting to update table: %s ' % e, 4)
             pass    
 
@@ -2284,7 +2283,7 @@ class MetaData:
         try:
             self.dbcur.execute(sql_select)
             matchedrow = self.dbcur.fetchone()
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error attempting to select from %s table: %s ' % (table, e), 4)
             pass  
                     
@@ -2319,7 +2318,7 @@ class MetaData:
         try:
             self.dbcur.execute(sql_select)
             matchedrow = self.dbcur.fetchone()
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error attempting to select from episode_meta table: %s ' % e, 4)
             pass  
                    
@@ -2462,7 +2461,7 @@ class MetaData:
         try:
             self.dbcur.execute(sql_select)
             matchedrow = self.dbcur.fetchone()
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error attempting to select from tvshow_meta table: %s ' % e, 4)
             pass  
                     
@@ -2477,7 +2476,7 @@ class MetaData:
         
         try:
             images = tvdb.get_show_image_choices(tvdb_id)
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error retreiving from thetvdb.com: %s ' % e, 4)
             images = None
             pass
@@ -2512,7 +2511,7 @@ class MetaData:
         try:
             self.dbcur.execute(sql_select)
             matchedrow = self.dbcur.fetchone()
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error attempting to select from season_meta table: %s ' % e, 4)
             pass 
                     
@@ -2538,7 +2537,7 @@ class MetaData:
                 common.addon.log('Season matched row found, deleting table entry', 0)
                 self.dbcur.execute("DELETE FROM season_meta WHERE imdb_id = '%s' AND season ='%s' " 
                                    % ( meta['imdb_id'], meta['season'] ) )
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error attempting to delete from cache table: %s ' % e, 4)
             common.addon.log('Meta data: %s' % meta, 4)
             pass 
@@ -2551,7 +2550,7 @@ class MetaData:
                                meta['cover_url'],meta['overlay'])
                                )
             self.dbcon.commit()
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error attempting to insert into seasons cache table: %s ' % e, 4)
             common.addon.log('Meta data: %s' % meta, 4)
             pass         
@@ -2574,7 +2573,7 @@ class MetaData:
         try:
             self.dbcur.execute(sql_delete)
             self.dbcon.commit()
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error attempting to delete from season cache table: %s ' % e, 4)
             pass
 
@@ -2731,7 +2730,7 @@ class MetaData:
         try:
             self.dbcur.execute(sql_select, ids)
             matchedrows = self.dbcur.fetchall()            
-        except Exception, e:
+        except Exception as e:
             common.addon.log('************* Error selecting from cache db: %s' % e, 4)
             return None
         

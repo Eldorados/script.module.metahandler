@@ -19,6 +19,7 @@ except ImportError:
     import queue
 net = Net()
 addon = Addon('script.module.metahandler')
+tmdb_common = Addon('metadata.common.themoviedb.org')
 
 class TMDB(object):
     '''
@@ -33,6 +34,23 @@ class TMDB(object):
         self.view = view
         self.lang = lang
         self.tmdb_api_key = tmdb_api_key
+        self.tmdb_common_ver = tmdb_common.get_version()
+        self.tmdb_api_key_ver = addon.get_setting('tmdb_api_key_ver')
+        
+        if self.tmdb_api_key == '' or not self.tmdb_api_key_ver == self.tmdb_common_ver:
+            try:
+                import os, xbmcvfs
+                self.tmdb_common_path = tmdb_common.get_path()
+                self.tmdb_common_xml = os.path.join(self.tmdb_common_path,'tmdb.xml')
+                f = xbmcvfs.File(self.tmdb_common_xml)
+                b = f.read()
+                f.close()
+                self.tmdb_api_key = re.search('api_key=([a-zA-Z0-9]+)', b).groups()[0]
+                addon.set_setting('tmdb_api_key_ver', self.tmdb_common_ver)
+                addon.set_setting('tmdb_api_key', self.tmdb_api_key)
+            except Exception as e:
+                addon.log("Error scraping TMDB API Key: %s " % e, 4)
+                
         self.omdb_api_key = omdb_api_key
         self.url_prefix = 'http://api.themoviedb.org/3'
         self.omdb_url = 'http://www.omdbapi.com/?apikey=%s' % self.omdb_api_key
@@ -69,7 +87,7 @@ class TMDB(object):
         addon.log('Requesting TMDB : %s' % url, 0)
         try:
             meta = simplejson.loads(net.http_GET(url,{"Accept":"application/json"}).content)
-        except Exception, e:
+        except Exception as e:
             addon.log("Error connecting to TMDB: %s " % e, 4)
             return None
 
@@ -96,7 +114,7 @@ class TMDB(object):
         addon.log('Requesting TMDB : %s' % url, 0)
         try:
             meta = simplejson.loads(net.http_GET(url,{"Accept":"application/json"}).content)
-        except Exception, e:
+        except Exception as e:
             addon.log("Error connecting to TMDB: %s " % e, 4)
             return None
 
@@ -112,7 +130,7 @@ class TMDB(object):
         strptime = lambda date_string, format: datetime(*(time.strptime(date_string, format)[0:6]))
         try:
             a = strptime(string, in_format).strftime(out_format)
-        except Exception, e:
+        except Exception as e:
             addon.log('************* Error Date conversion failed: %s' % e, 4)
             return None
         return a
@@ -169,7 +187,7 @@ class TMDB(object):
             addon.log('Requesting OMDB : %s' % url, 0)
             meta = simplejson.loads(net.http_GET(url).content)
             addon.log('OMDB Meta: %s' % meta, 0)
-        except Exception, e:
+        except Exception as e:
             addon.log("Error connecting to OMDB: %s " % e, 4)
             return {}
 
