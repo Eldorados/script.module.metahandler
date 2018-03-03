@@ -1,23 +1,16 @@
 '''
-    These classes cache metadata from TheMovieDB and TVDB.
+    These classes cache metadata from TheMovieDB, OMDB and TVDB.
     It uses sqlite databases.
        
     It uses themoviedb JSON api class and TVDB XML api class.
+    OMDB api is used as a backup for TMDB, fill in missing pieces.
+
     For TVDB it currently uses a modified version of 
     Python API by James Smith (http://loopj.com)
     
-    Metahandler intially created for IceFilms addon, reworked to be it's own 
-    script module to be used by many addons.
-
-    Created/Modified by: Eldorado
+    Author: Eldorado
     
     Initial creation and credits: Daledude / Anarchintosh / WestCoast13 
-    
-    
-*To-Do:
-- write a clean database function (correct imgs_prepacked by checking if the images actually exist)
-  for pre-packed container creator. also retry any downloads that failed.
-  also, if  database has just been created for pre-packed container, purge all images are not referenced in database.
 
 '''
 
@@ -41,15 +34,15 @@ net = Net()
 sys.path.append((os.path.split(common.addon_path))[0])
 
 '''
-   Use SQLIte3 wherever possible, needed for newer versions of XBMC
+   Use SQLIte3 wherever possible, needed for newer versions of XBMC/Kodi
    Keep pysqlite2 for legacy support
 '''
 try:
     if  common.addon.get_setting('use_remote_db')=='true' and   \
-        common.addon.get_setting('db_address') is not None and  \
-        common.addon.get_setting('db_user') is not None and     \
-        common.addon.get_setting('db_pass') is not None and     \
-        common.addon.get_setting('db_name') is not None:
+        common.addon.get_setting('db_address') and \
+        common.addon.get_setting('db_user') and \
+        common.addon.get_setting('db_pass') and \
+        common.addon.get_setting('db_name'):
         import mysql.connector as database
         common.addon.log('Loading MySQLdb as DB engine version: %s' % database.version.VERSION_TEXT, 2)
         DB = 'mysql'
@@ -93,15 +86,39 @@ class MetaData:
     '''  
 
      
-    def __init__(self, prepack_images=False, preparezip=False, tmdb_api_key=common.addon.get_setting('tmdb_api_key'), omdb_api_key=common.addon.get_setting('omdb_api_key')):
+    def __init__(self, prepack_images=False, tmdb_api_key=None, omdb_api_key=None, tvdb_api_key=None):
+        """
+        Initialize MetaData class
+
+        Metahandlers must be initialized with api keys
+        It is the developers responsibility to ensure that these are working
+        Users are able to override the keys by supplying their own
+
+            :param prepack_images=False: Deprecated - Do not use, will be removed in future update
+            :param tmdb_api_key=None: TMDB API key
+            :param omdb_api_key=None: OMDB API Key
+            :param tvdb_api_key=None: TVDB API Key
+        """
+        # Check to make sure we have api keys set before continuing
+       
+        if common.addon.get_setting('override_keys') == 'true':
+            self.tmdb_api_key=common.addon.get_setting('tmdb_api_key')
+            self.omdb_api_key=common.addon.get_setting('omdb_api_key')
+            self.tvdb_api_key=common.addon.get_setting('tvdb_api_key')
+        else:
+            self.tmdb_api_key=tmdb_api_key
+            self.omdb_api_key=omdb_api_key
+            self.tvdb_api_key=tvdb_api_key
+
+        if not self.tmdb_api_key or not self.tvdb_api_key:
+            common.addon.log('*** Metahandlers does NOT come with API keys, developer must supply their own ***', 4)
+            raise ValueError("Missing API Key(s) - You MUST supply TMDB & TVDB api keys")
 
         #Check if a path has been set in the addon settings
         settings_path = common.addon.get_setting('meta_folder_location')
         
         # TMDB constants
         self.tmdb_image_url = ''
-        self.tmdb_api_key = common.addon.get_setting('tmdb_api_key') if common.addon.get_setting('override_keys') == 'true' else tmdb_api_key
-        self.omdb_api_key = omdb_api_key
                
         if settings_path:
             self.path = xbmc.translatePath(settings_path)
@@ -109,11 +126,6 @@ class MetaData:
             self.path = common.profile_path();
         
         self.cache_path = make_dir(self.path, 'meta_cache')
-
-        if prepack_images:
-            #create container working directory
-            #!!!!!Must be matched to workdir in metacontainers.py create_container()
-            self.work_path = make_dir(self.path, 'work')
             
         #set movie/tvshow constants
         self.type_movie = 'movie'
@@ -121,22 +133,30 @@ class MetaData:
         self.type_season = 'season'        
         self.type_episode = 'episode'
             
-        #this init auto-constructs necessary folder hierarchies.
+        self.prepack_images = False # Deprecated and will be removed in future update
 
-        # control whether class is being used to prepare pre-packaged .zip
-        self.prepack_images = bool2string(prepack_images)
         self.videocache = os.path.join(self.cache_path, 'video_cache.db')
 
-        self.tvpath = make_dir(self.cache_path, self.type_tvshow)
-        self.tvcovers = make_dir(self.tvpath, 'covers')
-        self.tvbackdrops = make_dir(self.tvpath, 'backdrops')
-        self.tvbanners = make_dir(self.tvpath, 'banners')
+        # Initialize DB
+        self.__initialize_db()
 
-        self.mvpath = make_dir(self.cache_path, self.type_movie)
-        self.mvcovers = make_dir(self.mvpath, 'covers')
-        self.mvbackdrops = make_dir(self.mvpath, 'backdrops')
+        # Check TMDB configuration, update if necessary
+        self._set_tmdb_config()
 
-        # connect to db at class init and use it globally
+
+    def __del__(self):
+        ''' Cleanup db when object destroyed '''
+        try:
+            self.dbcur.close()
+            self.dbcon.close()
+        except: pass
+
+
+    def __initialize_db(self):
+        """
+        Initialize DB, either MYSQL or SQLITE
+        """   
+
         if DB == 'mysql':
             class MySQLCursorDict(database.cursor.MySQLCursor):
                 def _row_to_python(self, rowdata, desc=None):
@@ -159,79 +179,6 @@ class MetaData:
 
         # initialize cache db
         self._cache_create_movie_db()
-        
-        # Check TMDB configuration, update if necessary
-        self._set_tmdb_config()
-
-        ## !!!!!!!!!!!!!!!!!! Temporary code to update movie_meta columns cover_url and backdrop_url to store only filename !!!!!!!!!!!!!!!!!!!!!
- 
-        ## We have matches with outdated url, so lets strip the url out and only keep filename 
-        try:
-
-            if DB == 'mysql':
-                sql_select = "SELECT imdb_id, tmdb_id, cover_url, backdrop_url "\
-                                "FROM movie_meta "\
-                                "WHERE (substring(cover_url, 1, 36 ) = 'http://d3gtl9l2a4fn1j.cloudfront.net' "\
-                                "OR substring(backdrop_url, 1, 36 ) = 'http://d3gtl9l2a4fn1j.cloudfront.net')"
-                self.dbcur.execute(sql_select)
-                matchedrows = self.dbcur.fetchall()[0]
-                
-                if matchedrows:
-                    sql_update = "UPDATE movie_meta "\
-                                    "SET cover_url = SUBSTRING_INDEX(cover_url, '/', -1), "\
-                                    "backdrop_url = SUBSTRING_INDEX(backdrop_url, '/', -1) "\
-                                    "where substring(cover_url, 1, 36 ) = 'http://d3gtl9l2a4fn1j.cloudfront.net' "\
-                                    "or substring(backdrop_url, 1, 36 ) = 'http://d3gtl9l2a4fn1j.cloudfront.net'"
-                    self.dbcur.execute(sql_update)
-                    self.dbcon.commit()
-                    common.addon.log('MySQL rows successfully updated')
-
-                else:
-                    common.addon.log('No MySQL rows requiring update')                    
-                
-            else:
-          
-                sql_select = "SELECT imdb_id, tmdb_id, cover_url, thumb_url, backdrop_url "\
-                                "FROM movie_meta "\
-                                "WHERE substr(cover_url, 1, 36 ) = 'http://d3gtl9l2a4fn1j.cloudfront.net' "\
-                                "OR substr(thumb_url, 1, 36 ) = 'http://d3gtl9l2a4fn1j.cloudfront.net' "\
-                                "OR substr(backdrop_url, 1, 36 ) = 'http://d3gtl9l2a4fn1j.cloudfront.net' "\
-                                "OR substr(cover_url, 1, 1 ) in ('w', 'o') "\
-                                "OR substr(thumb_url, 1, 1 ) in ('w', 'o') "\
-                                "OR substr(backdrop_url, 1, 1 ) in ('w', 'o') "
-                self.dbcur.execute(sql_select)
-                matchedrows = self.dbcur.fetchall()
-
-                if matchedrows:
-                    dictrows = [dict(row) for row in matchedrows]
-                    for row in dictrows:
-                        if row["cover_url"]:
-                            row["cover_url"] = '/' + row["cover_url"].split('/')[-1]
-                        if row["thumb_url"]:
-                            row["thumb_url"] = '/' + row["thumb_url"].split('/')[-1]
-                        if row["backdrop_url"]:
-                            row["backdrop_url"] = '/' + row["backdrop_url"].split('/')[-1]
-
-                    sql_update = "UPDATE movie_meta SET cover_url = :cover_url, thumb_url = :thumb_url, backdrop_url = :backdrop_url  WHERE imdb_id = :imdb_id and tmdb_id = :tmdb_id"
-                    
-                    self.dbcur.executemany(sql_update, dictrows)
-                    self.dbcon.commit()
-                    common.addon.log('SQLite rows successfully updated')
-                else:
-                    common.addon.log('No SQLite rows requiring update')                    
-           
-        except Exception, e:
-            common.addon.log('************* Error updating cover and backdrop columns: %s' % e, 4)
-            pass
-        
-        ## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-    def __del__(self):
-        ''' Cleanup db when object destroyed '''
-        try:
-            self.dbcur.close()
-            self.dbcon.close()
-        except: pass
 
 
     def _cache_create_movie_db(self):
@@ -1002,56 +949,18 @@ class MetaData:
             if media_type==self.type_movie:
                 meta['playcount'] = self.__set_playcount(meta['overlay'])
             
-            #if cache row says there are pre-packed images then either use them or create them
-            if meta['imgs_prepacked'] == 'true':
-    
-                    #define the image paths               
-                    if media_type == self.type_movie:
-                        root_covers = self.mvcovers
-                        root_backdrops = self.mvbackdrops
-                    elif media_type == self.type_tvshow:
-                        root_covers = self.tvcovers
-                        root_backdrops = self.tvbackdrops
-                        root_banners = self.tvbanners
-                    
-                    if meta['cover_url']:
-                        cover_name = self._picname(meta['cover_url'])
-                        if cover_name:
-                            cover_path = os.path.join(root_covers, cover_name[0].lower())
-                            if self.prepack_images == 'true':
-                                self._downloadimages(meta['cover_url'], cover_path, cover_name)
-                            meta['cover_url'] = os.path.join(cover_path, cover_name)
-                    
-                    if meta['backdrop_url']:
-                        backdrop_name = self._picname(meta['backdrop_url'])
-                        if backdrop_name:
-                            backdrop_path=os.path.join(root_backdrops, backdrop_name[0].lower())
-                            if self.prepack_images == 'true':
-                                self._downloadimages(meta['backdrop_url'], backdrop_path, backdrop_name)
-                            meta['backdrop_url'] = os.path.join(backdrop_path, backdrop_name)
-    
-                    if meta.has_key('banner_url'):
-                        if meta['banner_url']:
-                            banner_name = self._picname(meta['banner_url'])
-                            if banner_name:
-                                banner_path=os.path.join(root_banners, banner_name[0].lower())
-                                if self.prepack_images == 'true':
-                                    self._downloadimages(meta['banner_url'], banner_path, banner_name)
-                                meta['banner_url'] = os.path.join(banner_path, banner_name)
-    
-            #Else - they are online so piece together the full URL from TMDB 
-            else:
-                if media_type == self.type_movie:
-                    if meta['cover_url'] and len(meta['cover_url']) > 1:
-                        if not meta['cover_url'].startswith('http'):
-                            meta['cover_url'] = self.tmdb_image_url  + common.addon.get_setting('tmdb_poster_size') + meta['cover_url']
-                    else:
-                        meta['cover_url'] = ''
-                    if meta['backdrop_url'] and len(meta['backdrop_url']) > 1:
-                        if not meta['backdrop_url'].startswith('http'):
-                            meta['backdrop_url'] = self.tmdb_image_url  + common.addon.get_setting('tmdb_backdrop_size') + meta['backdrop_url']
-                    else:
-                        meta['backdrop_url'] = ''
+            # Piece together the full URL for images from TMDB
+            if media_type == self.type_movie:
+                if meta['cover_url'] and len(meta['cover_url']) > 1:
+                    if not meta['cover_url'].startswith('http'):
+                        meta['cover_url'] = self.tmdb_image_url  + common.addon.get_setting('tmdb_poster_size') + meta['cover_url']
+                else:
+                    meta['cover_url'] = ''
+                if meta['backdrop_url'] and len(meta['backdrop_url']) > 1:
+                    if not meta['backdrop_url'].startswith('http'):
+                        meta['backdrop_url'] = self.tmdb_image_url  + common.addon.get_setting('tmdb_backdrop_size') + meta['backdrop_url']
+                else:
+                    meta['backdrop_url'] = ''
     
             common.addon.log('Returned Meta: %s' % meta, 0)
             return meta  
@@ -1387,7 +1296,8 @@ class MetaData:
         meta['tagline'] = md.get('tagline', '')
         meta['rating'] = float(md.get('rating', 0))
         meta['votes'] = str(md.get('votes', ''))
-        meta['duration'] = int(str(md.get('runtime', 0))) * 60
+        if meta['duration']:
+            meta['duration'] = int(str(md.get('runtime', 0))) * 60
         meta['plot'] = md.get('overview', '')
         meta['mpaa'] = md.get('certification', '')       
         meta['premiered'] = md.get('released', '')
@@ -1493,7 +1403,7 @@ class MetaData:
             these "None found" entries otherwise we hit tvdb alot.
         '''      
         common.addon.log('Starting TVDB Lookup', 0)
-        tvdb = TheTVDB(language=self.__get_tvdb_language())
+        tvdb = TheTVDB(api_key=self.tvdb_api_key, language=self.__get_tvdb_language())
         tvdb_id = ''
         
         try:

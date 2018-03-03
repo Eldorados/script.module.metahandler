@@ -31,7 +31,7 @@ from addon.common.addon import Addon
 addon = Addon('script.module.metahandler')
 
 class TheTVDB(object):
-    def __init__(self, api_key=addon.get_setting('tvdb_api_key'), language = 'en', want_raw = False):
+    def __init__(self, api_key=None, language = 'en', want_raw = False):
         #http://thetvdb.com/api/<apikey>/<request>
         self.api_key = api_key
         self.mirror_url = "http://thetvdb.com"

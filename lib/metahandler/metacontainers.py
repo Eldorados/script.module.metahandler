@@ -1,7 +1,6 @@
 '''
 create/install metadata containers,
 v1.0
-currently very specific to icefilms.info
 '''
 
 # NOTE: these are imported later on in the create container function:
