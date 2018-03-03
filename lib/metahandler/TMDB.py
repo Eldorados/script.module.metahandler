@@ -28,17 +28,15 @@ class TMDB(object):
     or if there is data missing on TMDB, another call is made to IMDB to fill in the missing information.
     '''  
     
-    def __init__(self, tmdb_api_key='', omdb_api_key='', view='json', lang='en'):
-        #view = yaml json xml
-        self.view = view
+    def __init__(self, tmdb_api_key=None, omdb_api_key=None, lang='en'):
         self.lang = lang
         self.tmdb_api_key = tmdb_api_key
         self.omdb_api_key = omdb_api_key
         self.url_prefix = 'http://api.themoviedb.org/3'
         self.omdb_url = 'http://www.omdbapi.com/?apikey=%s' % self.omdb_api_key
-        self.imdb_api = self.omdb_url + '&i=%s'
-        self.imdb_name_api = self.omdb_url + '&t=%s'
-        self.imdb_nameyear_api = self.omdb_url + '&t=%s&y=%s' 
+        self.omdb_api = self.omdb_url + '&i=%s'
+        self.omdb_name_api = self.omdb_url + '&t=%s'
+        self.omdb_nameyear_api = self.omdb_url + '&t=%s&y=%s'
       
     def __clean_name(self, mystring):
         newstring = ''
@@ -143,7 +141,9 @@ class TMDB(object):
         
     def search_imdb(self, name, imdb_id='', year=''):
         '''
-        Search IMDB by either IMDB ID or Name/Year      
+        Search IMDB by either IMDB ID or Name/Year
+
+        Only perform search if we have an OMDB API Key
         
         Args:
             name (str): full name of movie you are searching            
@@ -155,26 +155,30 @@ class TMDB(object):
         Returns:
             DICT of meta data or None if cannot be found.
         '''        
-        #Set OMDB API URL based on the type of search we need to do
-        if imdb_id:
-            url = self.imdb_api % imdb_id
-        else:
-            name = urllib.quote(name)
-            if year:
-                url = self.imdb_nameyear_api % (name, year)
+        
+        if self.omdb_api_key:
+            # Set OMDB API URL based on the type of search we need to do
+            if imdb_id:
+                url = self.omdb_api % imdb_id
             else:
-                url = self.imdb_name_api % name
+                name = urllib.quote(name)
+                if year:
+                    url = self.omdb_nameyear_api % (name, year)
+                else:
+                    url = self.omdb_name_api % name
 
-        try:
-            addon.log('Requesting OMDB : %s' % url, 0)
-            meta = simplejson.loads(net.http_GET(url).content)
-            addon.log('OMDB Meta: %s' % meta, 0)
-        except Exception, e:
-            addon.log("Error connecting to OMDB: %s " % e, 4)
-            return {}
+            try:
+                addon.log('Requesting OMDB : %s' % url, 0)
+                meta = simplejson.loads(net.http_GET(url).content)
+                addon.log('OMDB Meta: %s' % meta, 0)
+            except Exception, e:
+                addon.log("Error connecting to OMDB: %s " % e, 4)
+                return {}
 
-        if meta['Response'] == 'True':
-            return meta
+            if meta['Response'] == 'True':
+                return meta
+            else:
+                return {}
         else:
             return {}
         
@@ -375,7 +379,7 @@ class TMDB(object):
                     imdb_id = meta['results'][0]['imdb_id']
             
             #Didn't get a match by name at TMDB, let's try IMDB by name
-            elif addon.get_setting('omdbapi_fallback')=='true':
+            elif addon.get_setting('omdbapi_fallback') == 'true':
                 meta = self.search_imdb(name, year=year)
                 if meta:
                     imdb_id = meta['imdbID']                         
