@@ -99,20 +99,27 @@ class MetaData:
             :param omdb_api_key=None: OMDB API Key
             :param tvdb_api_key=None: TVDB API Key
         """
-        # Check to make sure we have api keys set before continuing
-       
-        if common.addon.get_setting('override_keys') == 'true':
-            self.tmdb_api_key=common.addon.get_setting('tmdb_api_key')
-            self.omdb_api_key=common.addon.get_setting('omdb_api_key')
-            self.tvdb_api_key=common.addon.get_setting('tvdb_api_key')
-        else:
-            self.tmdb_api_key=tmdb_api_key
-            self.omdb_api_key=omdb_api_key
-            self.tvdb_api_key=tvdb_api_key
 
-        if not self.tmdb_api_key or not self.tvdb_api_key:
+        self.tmdb_api_key=tmdb_api_key
+        self.omdb_api_key=omdb_api_key
+        self.tvdb_api_key=tvdb_api_key
+
+        if common.addon.get_setting('override_tmdb_key') == 'true' and common.addon.get_setting('tmdb_api_key'):
+            common.addon.log('Using user supplied TMDB API Key', 2)
+            self.tmdb_api_key=common.addon.get_setting('tmdb_api_key')
+
+        if common.addon.get_setting('override_omdb_key') == 'true' and common.addon.get_setting('omdb_api_key'):
+            common.addon.log('Using user supplied OMDB API Key', 2)       
+            self.omdb_api_key=common.addon.get_setting('omdb_api_key')
+    
+        if common.addon.get_setting('override_tvdb_key') == 'true' and common.addon.get_setting('tvdb_api_key'):
+            common.addon.log('Using user supplied TVDB API Key', 2)
+            self.tvdb_api_key=common.addon.get_setting('tvdb_api_key')
+
+        # Check to make sure we have api keys set before continuing
+        if not self.tmdb_api_key and not self.omdb_api_key and not self.tvdb_api_key:
             common.addon.log('*** Metahandlers does NOT come with API keys, developer must supply their own ***', 4)
-            raise ValueError("Missing API Key(s) - You MUST supply TMDB & TVDB api keys")
+            raise ValueError("Missing API Key(s) - You MUST supply your own api keys!")
 
         #Check if a path has been set in the addon settings
         settings_path = common.addon.get_setting('meta_folder_location')
@@ -891,10 +898,12 @@ class MetaData:
                 meta = self._get_tmdb_meta(imdb_id, tmdb_id, name, year)
             elif media_type==self.type_tvshow:
                 meta = self._get_tvdb_meta(imdb_id, name, year)
+
+            if meta:
+                self._cache_save_video_meta(meta, name, media_type, overlay)
             
-            self._cache_save_video_meta(meta, name, media_type, overlay)
-            
-        meta = self.__format_meta(media_type, meta, name)
+        if meta:
+            meta = self.__format_meta(media_type, meta, name)
         
         return meta
 
@@ -1260,6 +1269,12 @@ class MetaData:
             no movie meta info was found from tmdb because we should cache
             these "None found" entries otherwise we hit tmdb alot.
         '''        
+
+
+        # Check to make sure we have api keys set before continuing
+        if not self.tmdb_api_key:
+            common.addon.log('*** Metahandlers does NOT come with API keys, developer must supply their own ***', 4)
+            raise ValueError("Missing API Key(s) - You MUST supply TMDB api keys")
         
         tmdb = TMDB(tmdb_api_key=self.tmdb_api_key, omdb_api_key=self.omdb_api_key, lang=self.__get_tmdb_language())
         meta = tmdb.tmdb_lookup(name,imdb_id,tmdb_id, year)
@@ -1402,6 +1417,12 @@ class MetaData:
             no movie meta info was found from tvdb because we should cache
             these "None found" entries otherwise we hit tvdb alot.
         '''      
+
+        # Check to make sure we have api keys set before continuing
+        if not self.tvdb_api_key:
+            common.addon.log('*** Metahandlers does NOT come with API keys, developer must supply their own ***', 4)
+            return None
+
         common.addon.log('Starting TVDB Lookup', 0)
         tvdb = TheTVDB(api_key=self.tvdb_api_key, language=self.__get_tvdb_language())
         tvdb_id = ''
