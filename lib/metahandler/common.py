@@ -16,11 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os    
-from addon.common.addon import Addon
+import os
+from lib import kodi
 
-addon = Addon('script.module.metahandler')
-addon_path = addon.get_path()
-profile_path = addon.get_profile()
+addon_path = kodi.get_path()
+profile_path = kodi.translate_path(kodi.get_profile())
 settings_file = os.path.join(addon_path, 'resources', 'settings.xml')
-addon_version = addon.get_version()
+addon_version = kodi.get_version()

@@ -9,7 +9,7 @@
 		<setting id="db_pass"	 type="text" 	label="    Password" 	enable="eq(-4,true)" default="" option="hidden"/>
 		<setting id="db_name"	 type="text" 	label="    Database" 	enable="eq(-5,true)" default="video_cache" />
     <setting type="sep" />
-    <setting label="Reset Dababase" type="action" action="RunScript($CWD/lib/metahandler/rm_DB.py)"/>
+    <setting label="Reset Dababase" type="action" action="RunPlugin(plugin://script.module.metahandler/?mode=reset_cache)"/>
 </category>
 <category label="TMDB (Movies)">
     <setting id="tmdb_language" label="Language" type="labelenum" default="English (en)" values="English (en)|Český (cs)|Dansk (da)|Deutsch (de)|ελληνικά (el)|Español (es)|Français (fr)|Magyar (hu)|Italiano (it)|Nederlands (nl)|Polski (pl)|Português (pt)|Pусский (ru)|Slovenščina (sk)|Svenska (sv)|Türkçe (tr)"/>

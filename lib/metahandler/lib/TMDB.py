@@ -1,9 +1,3 @@
-# Credits: Daledude, WestCoast13
-# Awesome efficient lightweight code.
-# last modified 19 March 2011
-# added support for TVDB search for show, seasons, episodes
-# also searches omdb (using http://www.omdbapi.com/) for missing info in movies or tvshows
-
 import sys
 import simplejson as simplejson 
 
@@ -12,11 +6,6 @@ from datetime import datetime
 import time
 from addon.common.net import Net
 from addon.common.addon import Addon
-from threading import Thread
-try:
-    import Queue as queue
-except ImportError:
-    import queue
 net = Net()
 addon = Addon('script.module.metahandler')
 
