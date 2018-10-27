@@ -16,14 +16,14 @@ import re
 import sys
 import time
 
-from lib.TMDB import TMDB
-from lib.thetvdbapi import TheTVDB
-from lib import db_utils
-from lib import meta_types
-from lib import utils
-from lib import constants
-from lib import log_utils
-from lib import kodi
+from lib.sources.TMDB import TMDB
+from lib.sources.thetvdbapi import TheTVDB
+from lib.modules import db_utils
+from lib.modules import meta_types
+from lib.modules import utils
+from lib.modules import constants
+from lib.modules import log_utils
+from lib.modules import kodi
 import common
 
 logger = log_utils.Logger.get_logger()
@@ -733,7 +733,8 @@ class MetaData:
         meta['imdb_id'] = md.get('imdb_id', imdb_id)
         meta['title'] = md.get('name', name)      
         meta['tagline'] = md.get('tagline', '')
-        meta['rating'] = float(md.get('rating'))
+        if md.get('rating'):
+            meta['rating'] = float(md.get('rating'))
         meta['votes'] = str(md.get('votes', ''))
         if meta['duration']:
             meta['duration'] = int(str(md.get('runtime'))) * 60

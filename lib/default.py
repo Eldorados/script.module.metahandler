@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from metahandler.lib import db_utils
-from metahandler.lib import log_utils
-from metahandler.lib import kodi
+from metahandler.lib.modules import db_utils
+from metahandler.lib.modules import log_utils
+from metahandler.lib.modules import kodi
 
 logger = log_utils.Logger.get_logger()
 

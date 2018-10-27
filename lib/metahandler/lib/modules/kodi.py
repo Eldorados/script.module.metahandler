@@ -24,9 +24,9 @@ import urllib
 import sys
 import os
 import re
-#import strings
+import constants
 
-addon = xbmcaddon.Addon('script.module.metahandler')
+addon = xbmcaddon.Addon(constants.addon_id)
 get_setting = addon.getSetting
 show_settings = addon.openSettings
 sleep = xbmc.sleep

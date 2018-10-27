@@ -20,7 +20,9 @@ import xbmc
 import xbmcaddon
 from xbmc import LOGDEBUG, LOGERROR, LOGFATAL, LOGINFO, LOGNONE, LOGNOTICE, LOGSEVERE, LOGWARNING  # @UnusedImport
 
-addon_meta = xbmcaddon.Addon('script.module.metahandler')
+import constants
+
+addon_meta = xbmcaddon.Addon(constants.addon_id)
 
 def execute_jsonrpc(command):
     if not isinstance(command, basestring):

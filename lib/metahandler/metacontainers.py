@@ -11,8 +11,8 @@ import os,sys
 import shutil
 import xbmcvfs
 import common
-from lib import db_utils
-from lib import log_utils
+from lib.modules import db_utils
+from lib.modules import log_utils
 
 logger = log_utils.Logger.get_logger()
 

@@ -1,7 +1,6 @@
 import kodi
 import db_utils
 import log_utils
-import sqlite3
 
 import xbmcvfs
 

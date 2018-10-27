@@ -38,7 +38,7 @@ def init_movie_meta(imdb_id, tmdb_id, name, year=0):
     meta['studio'] = ''
     
     #set whether that database row will be accompanied by pre-packed images.                        
-    meta['imgs_prepacked'] = self.prepack_images
+    meta['imgs_prepacked'] = False
     
     meta['thumb_url'] = ''
     meta['cover_url'] = ''
@@ -86,7 +86,7 @@ def init_tvshow_meta(imdb_id, tvdb_id, name, year=0):
     meta['banner_url'] = ''
     
     #set whether that database row will be accompanied by pre-packed images.
-    meta['imgs_prepacked'] = self.prepack_images
+    meta['imgs_prepacked'] = False
     
     meta['cover_url'] = ''
     meta['backdrop_url'] = ''

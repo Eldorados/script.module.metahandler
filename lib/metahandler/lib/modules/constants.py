@@ -1,3 +1,4 @@
+addon_id = 'script.module.metahandler'
 
 #set movie/tvshow constants
 type_movie = 'movie'

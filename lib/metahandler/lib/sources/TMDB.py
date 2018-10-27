@@ -1,13 +1,16 @@
 import sys
 import simplejson as simplejson 
-
 import urllib, re
 from datetime import datetime
 import time
+
 from addon.common.net import Net
-from addon.common.addon import Addon
 net = Net()
-addon = Addon('script.module.metahandler')
+
+from metahandler.lib.modules import log_utils
+from metahandler.lib.modules import kodi
+logger = log_utils.Logger.get_logger()
+
 
 class TMDB(object):
     '''
@@ -53,17 +56,17 @@ class TMDB(object):
             Returns None when not found or error requesting page
         '''      
         url = "%s/%s?language=%s&api_key=%s&%s" % (self.url_prefix, method, self.lang, self.tmdb_api_key, values)
-        addon.log('Requesting TMDB : %s' % url, 0)
+        logger.log('Requesting TMDB : %s' % url)
         try:
             meta = simplejson.loads(net.http_GET(url,{"Accept":"application/json"}).content)
         except Exception, e:
-            addon.log("Error connecting to TMDB: %s " % e, 4)
+            logger.log_error("Error connecting to TMDB: %s " % e)
             return None
 
         if meta == 'Nothing found.':
             return None
         else:
-            addon.log('TMDB Meta: %s' % meta, 0)
+            logger.log('TMDB Meta: %s' % meta)
             return meta
 
 
@@ -80,17 +83,17 @@ class TMDB(object):
             Returns None when not found or error requesting page
         '''      
         url = "%s/%s?language=%s&api_key=%s&%s" % (self.url_prefix, method, self.lang, self.tmdb_api_key, values)
-        addon.log('Requesting TMDB : %s' % url, 0)
+        logger.log('Requesting TMDB : %s' % url)
         try:
             meta = simplejson.loads(net.http_GET(url,{"Accept":"application/json"}).content)
         except Exception, e:
-            addon.log("Error connecting to TMDB: %s " % e, 4)
+            logger.log_error("Error connecting to TMDB: %s " % e)
             return None
 
         if meta == 'Nothing found.':
             return None
         else:
-            addon.log('TMDB Meta: %s' % meta, 0)
+            logger.log('TMDB Meta: %s' % meta)
             return meta
 
 
@@ -100,7 +103,7 @@ class TMDB(object):
         try:
             a = strptime(string, in_format).strftime(out_format)
         except Exception, e:
-            addon.log('************* Error Date conversion failed: %s' % e, 4)
+            logger.log_error('************* Error Date conversion failed: %s' % e)
             return None
         return a
         
@@ -157,11 +160,11 @@ class TMDB(object):
                     url = self.omdb_name_api % name
 
             try:
-                addon.log('Requesting OMDB : %s' % url, 0)
+                logger.log('Requesting OMDB : %s' % url)
                 meta = simplejson.loads(net.http_GET(url).content)
-                addon.log('OMDB Meta: %s' % meta, 0)
+                logger.log('OMDB Meta: %s' % meta)
             except Exception, e:
-                addon.log("Error connecting to OMDB: %s " % e, 4)
+                logger.log_error("Error connecting to OMDB: %s " % e)
                 return {}
 
             if meta['Response'] == 'True':
@@ -183,15 +186,15 @@ class TMDB(object):
         Returns:
             DICT of updated meta data container
         '''        
-        addon.log('Updating current meta with IMDB', 0)
+        logger.log('Updating current meta with IMDB')
         
         if self._upd_key(meta, 'overview') and self._upd_key(meta, 'plot'):
-            addon.log('-- IMDB - Updating Overview', 0)
+            logger.log('-- IMDB - Updating Overview')
             if imdb_meta.has_key('Plot'):
                 meta['overview']=imdb_meta['Plot']           
         
         if self._upd_key(meta, 'released') and self._upd_key(meta, 'premiered'):
-            addon.log('-- IMDB - Updating Premiered', 0)
+            logger.log('-- IMDB - Updating Premiered')
             
             temp=self._convert_date(imdb_meta['Released'], '%d %b %Y', '%Y-%m-%d')
             #May have failed, lets try a different format
@@ -205,13 +208,13 @@ class TMDB(object):
                     meta['released'] = imdb_meta['Year'] + '-01-01'
         
         if self._upd_key(meta, 'cover_url'):
-            addon.log('-- IMDB - Updating Posters', 0)
+            logger.log('-- IMDB - Updating Posters')
             temp=imdb_meta['Poster']
             if temp != 'N/A':
                 meta['cover_url']=temp
         
         if self._upd_key(meta, 'rating'):
-            addon.log('-- IMDB - Updating Rating', 0)
+            logger.log('-- IMDB - Updating Rating')
             imdb_rating = imdb_meta['imdbRating']
             if imdb_rating not in ('N/A', '', None):
                 meta['rating'] = imdb_rating
@@ -221,17 +224,17 @@ class TMDB(object):
 
         if self._upd_key(meta, 'certification'):
             if imdb_meta['Rated']:
-                addon.log('-- IMDB - Updating MPAA', 0)
+                logger.log('-- IMDB - Updating MPAA')
                 meta['certification'] = imdb_meta['Rated']
 
         if self._upd_key(meta, 'director'):
             if imdb_meta['Director']:
-                addon.log('-- IMDB - Updating Director', 0)
+                logger.log('-- IMDB - Updating Director')
                 meta['director'] = imdb_meta['Director']
 
         if self._upd_key(meta, 'writer'):
             if imdb_meta['Writer']:
-                addon.log('-- IMDB - Updating Writer', 0)
+                logger.log('-- IMDB - Updating Writer')
                 meta['writer'] = imdb_meta['Writer']
 
         if not self._upd_key(imdb_meta, 'imdbVotes'):
@@ -240,13 +243,13 @@ class TMDB(object):
             meta['votes'] = ''
                 
         if self._upd_key(meta, 'genre'):
-            addon.log('-- IMDB - Updating Genre', 0)
+            logger.log('-- IMDB - Updating Genre')
             temp=imdb_meta['Genre']
             if temp != 'N/A':
                 meta['genre']=temp
                 
         if self._upd_key(meta, 'runtime') and self._upd_key(meta, 'duration'):
-            addon.log('-- IMDB - Updating Runtime', 0)
+            logger.log('-- IMDB - Updating Runtime')
             temp=imdb_meta['Runtime']
             if temp != 'N/A':
                 dur=0
@@ -368,7 +371,7 @@ class TMDB(object):
                     imdb_id = meta['results'][0]['imdb_id']
             
             #Didn't get a match by name at TMDB, let's try IMDB by name
-            elif addon.get_setting('omdbapi_fallback') == 'true':
+            elif kodi.get_setting('omdbapi_fallback') == 'true':
                 meta = self.search_imdb(name, year=year)
                 if meta:
                     imdb_id = meta['imdbID']                         
@@ -417,14 +420,14 @@ class TMDB(object):
                 #Update any missing information from IDMB
                 if meta.has_key('imdb_id'):
                     imdb_id = meta['imdb_id']
-            if imdb_id and addon.get_setting('omdbapi_fallback')=='true': 
-                addon.log('Requesting OMDB for extra information: %s' % imdb_id, 0)
+            if imdb_id and kodi.get_setting('omdbapi_fallback')=='true': 
+                logger.log('Requesting OMDB for extra information: %s' % imdb_id)
                 imdb_meta = self.search_imdb(name, imdb_id)
                 if imdb_meta:
                     meta = self.update_imdb_meta(meta, imdb_meta)
         
         #If all else fails, and we don't have a TMDB id
-        elif addon.get_setting('omdbapi_fallback')=='true':
+        elif kodi.get_setting('omdbapi_fallback')=='true':
             imdb_meta = self.search_imdb(name, imdb_id, year)
             if imdb_meta:
                 meta = self.update_imdb_meta({}, imdb_meta)
