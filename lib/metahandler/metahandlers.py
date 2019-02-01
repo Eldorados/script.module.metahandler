@@ -625,7 +625,7 @@ class MetaData:
                                 meta['year'], meta['director'], meta['writer'], meta['tagline'], meta['cast'],
                                 meta['rating'], meta['votes'], meta['duration'], meta['plot'], meta['mpaa'],
                                 meta['premiered'], meta['genre'], meta['studio'], meta['thumb_url'], meta['cover_url'],
-                                meta['trailer_url'], meta['backdrop_url'], meta['imgs_prepacked'], meta['overlay'])
+                                meta['trailer_url'], meta['backdrop_url'], None, meta['overlay'])
 
             elif media_type == constants.type_tvshow:
                 sql_insert = self.__insert_from_dict(table, 19)
@@ -633,7 +633,7 @@ class MetaData:
                 values = (meta['imdb_id'], meta['tvdb_id'], meta['title'], meta['year'], 
                         meta['cast'], meta['rating'], meta['duration'], meta['plot'], meta['mpaa'],
                         meta['premiered'], meta['genre'], meta['studio'], meta['status'], meta['banner_url'],
-                        meta['cover_url'], meta['trailer_url'], meta['backdrop_url'], meta['imgs_prepacked'], meta['overlay'])
+                        meta['cover_url'], meta['trailer_url'], meta['backdrop_url'], None, meta['overlay'])
 
             #Commit all transactions
             self.DB.insert(sql_insert, values)
@@ -698,7 +698,7 @@ class MetaData:
         # Check to make sure we have api keys set before continuing
         if not self.tmdb_api_key:
             logger.log_error('*** Metahandlers does NOT come with API keys, developer must supply their own ***')
-            return None
+            return meta_types.init_movie_meta(imdb_id, tmdb_id, name, year)
         
         tmdb = TMDB(tmdb_api_key=self.tmdb_api_key, omdb_api_key=self.omdb_api_key, lang=utils.get_tmdb_language())
         meta = tmdb.tmdb_lookup(name,imdb_id,tmdb_id, year)
@@ -760,7 +760,7 @@ class MetaData:
                 char = cast.get('character','')
                 if not char:
                     char = ''
-                meta['cast'].append((cast.get('name',''),char ))
+                meta['cast'].append((cast.get('name',''),char, cast.get('profile_path', '') ))
                         
         crew_list = []
         crew_list = md.get('crew','')
@@ -846,7 +846,7 @@ class MetaData:
         # Check to make sure we have api keys set before continuing
         if not self.tvdb_api_key:
             logger.log_error('*** Metahandlers does NOT come with API keys, developer must supply their own ***')
-            return None
+            return meta_types.init_tvshow_meta(imdb_id, None, name, year)
 
         logger.log('Starting TVDB Lookup')
         tvdb = TheTVDB(api_key=self.tvdb_api_key, language=utils.get_tvdb_language())
@@ -932,7 +932,6 @@ class MetaData:
                     for actor in show.actors:
                         meta['cast'].append(actor)
                 meta['banner_url'] = show.banner_url
-                meta['imgs_prepacked'] = False
                 meta['cover_url'] = show.poster_url
                 meta['backdrop_url'] = show.fanart_url
                 meta['overlay'] = 6

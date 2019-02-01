@@ -35,11 +35,7 @@ def init_movie_meta(imdb_id, tmdb_id, name, year=0):
     meta['premiered'] = ''
     meta['trailer_url'] = ''
     meta['genre'] = ''
-    meta['studio'] = ''
-    
-    #set whether that database row will be accompanied by pre-packed images.                        
-    meta['imgs_prepacked'] = False
-    
+    meta['studio'] = ''       
     meta['thumb_url'] = ''
     meta['cover_url'] = ''
     meta['backdrop_url'] = ''
@@ -83,11 +79,7 @@ def init_tvshow_meta(imdb_id, tvdb_id, name, year=0):
     meta['studio'] = ''
     meta['status'] = ''        
     meta['cast'] = []
-    meta['banner_url'] = ''
-    
-    #set whether that database row will be accompanied by pre-packed images.
-    meta['imgs_prepacked'] = False
-    
+    meta['banner_url'] = ''  
     meta['cover_url'] = ''
     meta['backdrop_url'] = ''
     meta['overlay'] = 6
