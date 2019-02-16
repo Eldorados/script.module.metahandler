@@ -239,8 +239,6 @@ class TMDB(object):
 
         if not self._upd_key(imdb_meta, 'imdbVotes'):
             meta['votes'] = imdb_meta['imdbVotes']
-        else:
-            meta['votes'] = ''
                 
         if self._upd_key(meta, 'genre'):
             logger.log('-- IMDB - Updating Genre')
@@ -399,6 +397,7 @@ class TMDB(object):
                 meta['released'] = meta['release_date']
                 #Set rating to 0 so that we can force it to be grabbed from IMDB
                 meta['tmdb_rating'] = meta['vote_average']
+                meta['votes'] = meta['vote_count']
                 meta['rating'] = 0
                 if cast:
                     meta['cast'] = cast['cast']

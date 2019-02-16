@@ -728,7 +728,9 @@ class MetaData:
         '''      
         
         #Intialize movie_meta dictionary    
-        meta = meta_types.init_movie_meta(imdb_id, md.get('id', ''), name, year)
+        meta = {}
+        meta_data = meta_types.init_movie_meta(imdb_id, md.get('id', ''), name, year)
+        meta = meta_data['meta_data']
         
         meta['imdb_id'] = md.get('imdb_id', imdb_id)
         meta['title'] = md.get('name', name)      
@@ -760,7 +762,7 @@ class MetaData:
                 char = cast.get('character','')
                 if not char:
                     char = ''
-                meta['cast'].append((cast.get('name',''),char, cast.get('profile_path', '') ))
+                meta['cast'].append((cast.get('name',''),char))
                         
         crew_list = []
         crew_list = md.get('crew','')
