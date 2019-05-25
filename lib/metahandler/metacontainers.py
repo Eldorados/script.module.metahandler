@@ -126,12 +126,12 @@ class MetaContainer:
 
             db_address = common.addon.get_setting('db_address')
             db_port = common.addon.get_setting('db_port')
-            if db_port: db_address = '%s:%s' %(db_address,db_port)
+            if not db_port: db_port = '3306'
             db_user = common.addon.get_setting('db_user')
             db_pass = common.addon.get_setting('db_pass')
             db_name = common.addon.get_setting('db_name')
 
-            db = database.connect(db_name, db_user, db_pass, db_address, buffered=True)
+            db = database.connect(db_name, db_user, db_pass, db_address, port=db_port, buffered=True)
             mysql_cur = db.cursor()
             work_db = sqlite.connect(self.work_videocache);
             rows = work_db.execute('SELECT * FROM %s' %table).fetchall()
