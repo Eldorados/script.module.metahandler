@@ -45,11 +45,11 @@ class DB_Connection():
                     return None
             db_address = kodi.get_setting('db_address')
             db_port = kodi.get_setting('db_port')
-            if db_port: db_address = '%s:%s' %(db_address,db_port)
+            if not db_port: db_port = '3306'
             db_user = kodi.get_setting('db_user')
             db_pass = kodi.get_setting('db_pass')
             db_name = kodi.get_setting('db_name')
-            self.dbcon = self.database.connect(database=db_name, user=db_user, password=db_pass, host=db_address, buffered=True)
+            self.dbcon = self.database.connect(database=db_name, user=db_user, password=db_pass, host=db_address, port=db_port, buffered=True)
             self.dbcur = self.dbcon.cursor(cursor_class=MySQLCursorDict, buffered=True)
         else:
             self.dbcon = self.database.connect(videocache)
