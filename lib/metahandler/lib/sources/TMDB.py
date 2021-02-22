@@ -4,7 +4,7 @@ import urllib, re
 from datetime import datetime
 import time
 
-from addon.common.net import Net
+from modules import Net
 net = Net()
 
 from metahandler.lib.modules import log_utils

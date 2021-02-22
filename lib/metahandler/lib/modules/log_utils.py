@@ -18,7 +18,7 @@
 import json
 import xbmc
 import xbmcaddon
-from xbmc import LOGDEBUG, LOGERROR, LOGFATAL, LOGINFO, LOGNONE, LOGNOTICE, LOGSEVERE, LOGWARNING  # @UnusedImport
+from xbmc import LOGDEBUG, LOGERROR, LOGFATAL, LOGINFO, LOGNONE, LOGSEVERE, LOGWARNING  # @UnusedImport
 
 import constants
 
@@ -68,7 +68,7 @@ class Logger(object):
                 return
             elif level == LOGDEBUG:
                 if self.__addon_debug:
-                    level = LOGNOTICE
+                    level = LOGINFO
                 else:
                     return
         
@@ -85,8 +85,8 @@ class Logger(object):
     def log_debug(self, msg):
         self.log(msg, level=LOGDEBUG)
     
-    def log_notice(self, msg):
-        self.log(msg, level=LOGNOTICE)
+    def log_info(self, msg):
+        self.log(msg, level=LOGINFO)
     
     def log_warning(self, msg):
         self.log(msg, level=LOGWARNING)

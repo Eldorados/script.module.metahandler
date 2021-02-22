@@ -1,6 +1,6 @@
 """
     metahandler Kodi Addon
-    Copyright (C) 2012 Eldorado
+    Copyright (C) 2021 Eldorado
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,4 +42,4 @@ import common
 from lib.modules import log_utils
 
 logger = log_utils.Logger.get_logger()
-logger.log_notice('Initializing MetaHandlers version: %s' % common.addon_version)
+logger.log_info('Initializing MetaHandlers version: %s' % common.addon_version)

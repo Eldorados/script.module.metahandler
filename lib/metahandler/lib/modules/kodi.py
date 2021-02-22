@@ -1,6 +1,6 @@
 """
     Metahandler Addon for Kodi
-    Copyright (C) 2016 t0mm0, tknorris
+    Copyright (C) 2021 Eldorado
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ def get_profile():
     return addon.getAddonInfo('profile').decode('utf-8')
 
 def translate_path(path):
-    return xbmc.translatePath(path).decode('utf-8')
+    return xbmcvfs.translatePath(path).decode('utf-8')
 
 def set_setting(id, value):
     if not isinstance(value, basestring): value = str(value)
@@ -94,5 +94,5 @@ def notify(header=None, msg='', duration=2000, sound=None):
     try:
         xbmcgui.Dialog().notification(header, msg, icon_path, duration, sound)
     except:
-        builtin = "XBMC.Notification(%s,%s, %s, %s)" % (header, msg, duration, icon_path)
+        builtin = "Notification(%s,%s, %s, %s)" % (header, msg, duration, icon_path)
         xbmc.executebuiltin(builtin)
