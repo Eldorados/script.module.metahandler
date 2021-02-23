@@ -24,7 +24,7 @@ from metahandler.lib.modules import utils
 from metahandler.lib.modules import constants
 from metahandler.lib.modules import log_utils
 from metahandler.lib.modules import kodi
-import metahandler.common
+from metahandler import common
 
 logger = log_utils.Logger.get_logger()
 

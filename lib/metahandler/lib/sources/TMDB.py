@@ -4,11 +4,10 @@ import urllib, re
 from datetime import datetime
 import time
 
-from metahandler.lib.modules import Net
-net = Net()
-
 from metahandler.lib.modules import log_utils
 from metahandler.lib.modules import kodi
+from metahandler.lib.modules import net
+net = net.Net()
 logger = log_utils.Logger.get_logger()
 
 

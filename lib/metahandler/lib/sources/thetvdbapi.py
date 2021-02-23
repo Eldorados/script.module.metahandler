@@ -17,14 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import urllib, urllib2
+import urllib
 import datetime
 import random
 import re
 import copy
 
 import xml.parsers.expat as expat
-from cStringIO import StringIO
+from io import StringIO
 from zipfile import ZipFile
 
 class TheTVDB(object):
@@ -373,7 +373,7 @@ class TheTVDB(object):
 
 
     def _get_xml_data(self, url, filter_func = None, zip_name = None, callback = None):
-        data = urllib2.urlopen(url)
+        data = urllib.request(url)
         if zip_name:
             zipfile = ZipFile(StringIO(data.read()))
             data = zipfile.open(zip_name)

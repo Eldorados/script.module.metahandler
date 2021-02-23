@@ -5,6 +5,7 @@
      provider-name="Eldorado">
   <requires>
     <import addon="xbmc.python" version="3.0.0" />
+    <import addon="script.module.six" version="1.14.0+matrix.2"/>
     <import addon="script.module.simplejson" version="3.17.0+matrix.2"/>
     <import addon="script.module.myconnpy" version="8.0.18+matrix.1"/>
   </requires>

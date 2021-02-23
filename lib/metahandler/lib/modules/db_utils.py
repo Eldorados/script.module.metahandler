@@ -1,6 +1,6 @@
-import kodi
-import db_utils
-import log_utils
+from metahandler.lib.modules import kodi
+from metahandler.lib.modules import db_utils
+from metahandler.lib.modules import log_utils
 
 import xbmcvfs
 
