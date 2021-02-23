@@ -109,7 +109,7 @@ class TMDB(object):
         
     def _upd_key(self, meta, key):
         ''' Helper method to check if a key exists and if it has valid data, returns True if key needs to be udpated with valid data '''    
-        if meta.has_key(key) == False :
+        if key in meta == false:
             return True 
         else:
             try:
@@ -189,7 +189,7 @@ class TMDB(object):
         
         if self._upd_key(meta, 'overview') and self._upd_key(meta, 'plot'):
             logger.log('-- IMDB - Updating Overview')
-            if imdb_meta.has_key('Plot'):
+            if 'Plot' in imdb_meta:
                 meta['overview']=imdb_meta['Plot']           
         
         if self._upd_key(meta, 'released') and self._upd_key(meta, 'premiered'):
@@ -218,7 +218,7 @@ class TMDB(object):
             if imdb_rating not in ('N/A', '', None):
                 meta['rating'] = imdb_rating
             else:
-                if meta.has_key('tmdb_rating'):
+                if 'tmdb_rating' in meta:
                     meta['rating'] = meta['tmdb_rating']
 
         if self._upd_key(meta, 'certification'):
@@ -364,7 +364,7 @@ class TMDB(object):
                 meta = self._search_movie(name,'')
             if meta and meta['total_results'] != 0 and meta['results']:
                 tmdb_id = meta['results'][0]['id']
-                if meta['results'][0].has_key('imdb_id'):
+                if 'imdb_id' in meta['results'][0]:
                     imdb_id = meta['results'][0]['imdb_id']
             
             #Didn't get a match by name at TMDB, let's try IMDB by name
@@ -389,9 +389,9 @@ class TMDB(object):
                 cast = meta['casts']
                 trailers = meta['trailers']
                 
-                if meta.has_key('poster_path') and meta['poster_path']:
+                if 'poster_path' in meta and meta['poster_path']:
                     meta['cover_url'] = meta['poster_path']
-                if meta.has_key('backdrop_path') and meta['backdrop_path']:
+                if 'backdrop_path' in meta and meta['backdrop_path']:
                     meta['backdrop_url'] = meta['backdrop_path']
                 meta['released'] = meta['release_date']
                 #Set rating to 0 so that we can force it to be grabbed from IMDB
@@ -416,7 +416,7 @@ class TMDB(object):
                     meta['trailers'] = ''
 
                 #Update any missing information from IDMB
-                if meta.has_key('imdb_id'):
+                if 'imdb_id' in meta:
                     imdb_id = meta['imdb_id']
             if imdb_id and kodi.get_setting('omdbapi_fallback')=='true': 
                 logger.log('Requesting OMDB for extra information: %s' % imdb_id)

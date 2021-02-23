@@ -611,7 +611,7 @@ class MetaData:
             #strip title
             meta['title'] =  utils.clean_string(name.lower())
                     
-            if meta.has_key('cast'):
+            if 'cast' in meta:
                 meta['cast'] = str(meta['cast'])
     
             #set default overlay - watched status
@@ -787,7 +787,7 @@ class MetaData:
             else:
                 meta['genre'] = meta['genre'] + ' / ' + genre.get('name','')
         
-        if md.has_key('tvdb_studios'):
+        if 'tvdb_studios' in md:
             meta['studio'] = md.get('tvdb_studios', '')
         try:
             meta['studio'] = (md.get('studios', '')[0])['name']
@@ -806,7 +806,7 @@ class MetaData:
         
         meta['cover_url'] = md.get('cover_url', '')
         meta['backdrop_url'] = md.get('backdrop_url', '')
-        if md.has_key('posters'):
+        if 'posters' in md:
             # find first thumb poster url
             for poster in md['posters']:
                 if poster['image']['size'] == 'thumb':
@@ -818,7 +818,7 @@ class MetaData:
                     meta['cover_url'] = poster['image']['url']
                     break
 
-        if md.has_key('backdrops'):
+        if 'backdrops' in md:
             # find first original backdrop url
             for backdrop in md['backdrops']:
                 if backdrop['image']['size'] == 'original':
@@ -944,15 +944,15 @@ class MetaData:
                     imdb_meta = tmdb.search_imdb(name, imdb_id)
                     if imdb_meta:
                         imdb_meta = tmdb.update_imdb_meta(meta, imdb_meta)
-                        if imdb_meta.has_key('overview'):
+                        if 'overview' in imdb_meta:
                             meta['plot'] = imdb_meta['overview']
-                        if imdb_meta.has_key('rating'):
+                        if 'rating' in imdb_meta:
                             meta['rating'] = float(imdb_meta['rating'])
-                        if imdb_meta.has_key('runtime'):
+                        if 'runtime' in imdb_meta:
                             meta['duration'] = int(imdb_meta['runtime']) * 60
-                        if imdb_meta.has_key('cast'):
+                        if 'cast' in imdb_meta:
                             meta['cast'] = imdb_meta['cast']
-                        if imdb_meta.has_key('cover_url'):
+                        if 'cover_url' in imdb_meta:
                             meta['cover_url'] = imdb_meta['cover_url']
 
                 return meta
