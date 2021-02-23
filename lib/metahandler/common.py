@@ -17,7 +17,7 @@
 """
 
 import os
-from lib.modules import kodi
+from metahandler.lib.modules import kodi
 
 addon_path = kodi.get_path()
 profile_path = kodi.translate_path(kodi.get_profile())

@@ -24,7 +24,7 @@ import urllib
 import sys
 import os
 import re
-import constants
+from . import constants
 
 addon = xbmcaddon.Addon(constants.addon_id)
 get_setting = addon.getSetting
@@ -33,13 +33,13 @@ sleep = xbmc.sleep
 _log = xbmc.log
 
 def get_path():
-    return addon.getAddonInfo('path').decode('utf-8')
+    return addon.getAddonInfo('path')
 
 def get_profile():
-    return addon.getAddonInfo('profile').decode('utf-8')
+    return addon.getAddonInfo('profile')
 
 def translate_path(path):
-    return xbmcvfs.translatePath(path).decode('utf-8')
+    return xbmcvfs.translatePath(path)
 
 def set_setting(id, value):
     if not isinstance(value, basestring): value = str(value)

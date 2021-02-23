@@ -38,8 +38,8 @@ To lookup an episode:
 Check each function for a full description of args and return values
 
 '''
-import common
-from lib.modules import log_utils
+from metahandler import common
+from metahandler.lib.modules import log_utils
 
 logger = log_utils.Logger.get_logger()
 logger.log_info('Initializing MetaHandlers version: %s' % common.addon_version)

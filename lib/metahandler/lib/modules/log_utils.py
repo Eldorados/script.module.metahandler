@@ -18,9 +18,9 @@
 import json
 import xbmc
 import xbmcaddon
-from xbmc import LOGDEBUG, LOGERROR, LOGFATAL, LOGINFO, LOGNONE, LOGSEVERE, LOGWARNING  # @UnusedImport
+from xbmc import LOGDEBUG, LOGERROR, LOGFATAL, LOGINFO, LOGNONE, LOGWARNING  # @UnusedImport
 
-import constants
+from metahandler.lib.modules import constants
 
 addon_meta = xbmcaddon.Addon(constants.addon_id)
 
