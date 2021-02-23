@@ -244,7 +244,7 @@ class DB_Connection():
         # except (MySQLdb.Error, MySQLdb.Warning) as e:
         #     logger.log_error('************* Error selecting from mysql cache table: %s ' % e)
         #     pass
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error selecting from cache table: %s ' % e)
             pass
 
@@ -262,7 +262,7 @@ class DB_Connection():
         # except (MySQLdb.Error, MySQLdb.Warning) as e:
         #     logger.log_error('************* Error selecting from mysql cache table: %s ' % e)
         #     pass
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error selecting from cache table: %s ' % e)
             pass
 
@@ -277,7 +277,7 @@ class DB_Connection():
         # except (MySQLdb.Error, MySQLdb.Warning) as e:
         #     logger.log_error('************* Error inserting to mysql cache table: %s ' % e)
         #     pass
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error inserting to cache table: %s ' % e)
             pass
 
@@ -292,7 +292,7 @@ class DB_Connection():
         # except (MySQLdb.Error, MySQLdb.Warning) as e:
         #     logger.log_error('************* Error committing to mysql cache table: %s ' % e)
         #     pass
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error committing to cache table: %s ' % e)
             pass
 

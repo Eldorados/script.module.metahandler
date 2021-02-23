@@ -42,7 +42,7 @@ def translate_path(path):
     return xbmcvfs.translatePath(path)
 
 def set_setting(id, value):
-    if not isinstance(value, basestring): value = str(value)
+    if not isinstance(value, str): value = str(value)
     addon.setSetting(id, value)
 
 def get_version():
@@ -80,7 +80,7 @@ def get_plugin_url(queries):
         query = urllib.urlencode(queries)
     except UnicodeEncodeError:
         for k in queries:
-            if isinstance(queries[k], unicode):
+            if isinstance(queries[k], str):
                 queries[k] = queries[k].encode('utf-8')
         query = urllib.urlencode(queries)
 

@@ -25,7 +25,7 @@ from metahandler.lib.modules import constants
 addon_meta = xbmcaddon.Addon(constants.addon_id)
 
 def execute_jsonrpc(command):
-    if not isinstance(command, basestring):
+    if not isinstance(command, str):
         command = json.dumps(command)
     response = xbmc.executeJSONRPC(command)
     return json.loads(response)
@@ -73,7 +73,7 @@ class Logger(object):
                     return
         
         try:
-            if isinstance(msg, unicode):
+            if isinstance(msg, str):
                 msg = '%s (ENCODED)' % (msg.encode('utf-8'))
     
             xbmc.log('%s: %s' % (self.__name, msg), level)

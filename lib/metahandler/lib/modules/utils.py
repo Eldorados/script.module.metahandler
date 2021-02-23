@@ -60,7 +60,7 @@ def convert_date(string, in_format, out_format):
     #strptime = lambda date_string, format: datetime(*(time.strptime(date_string, format)[0:6]))
     try:
         a = strptime(string, in_format).strftime(out_format)
-    except Exception, e:
+    except Exception as e:
         logger.log_error('************* Error Date conversion failed: %s' % e)
         return None
     return a

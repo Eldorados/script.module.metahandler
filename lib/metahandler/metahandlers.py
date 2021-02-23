@@ -16,15 +16,15 @@ import re
 import sys
 import time
 
-from lib.sources.TMDB import TMDB
-from lib.sources.thetvdbapi import TheTVDB
-from lib.modules import db_utils
-from lib.modules import meta_types
-from lib.modules import utils
-from lib.modules import constants
-from lib.modules import log_utils
-from lib.modules import kodi
-import common
+from metahandler.lib.sources.TMDB import TMDB
+from metahandler.lib.sources.thetvdbapi import TheTVDB
+from metahandler.lib.modules import db_utils
+from metahandler.lib.modules import meta_types
+from metahandler.lib.modules import utils
+from metahandler.lib.modules import constants
+from metahandler.lib.modules import log_utils
+from metahandler.lib.modules import kodi
+import metahandler.common
 
 logger = log_utils.Logger.get_logger()
 
@@ -216,7 +216,7 @@ class MetaData:
 
         try:    
             matchedrow = self.DB.select_single(sql_select)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error selecting from cache db: %s' % e)
             return None
 
@@ -312,7 +312,7 @@ class MetaData:
         logger.log('SQL Select: %s' % sql_select)
         try:    
             matchedrow = self.DB.select_single(sql_select)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error selecting from cache db: %s' % e)
             return None
         
@@ -381,7 +381,7 @@ class MetaData:
                 if trailer_id:
                     meta['trailer'] = 'plugin://plugin.video.youtube/?action=play_video&videoid=%s' % trailer_id
                     
-            except Exception, e:
+            except Exception as e:
                 meta['trailer'] = ''
                 logger.log_warning('Failed to set trailer: %s' % e)
                 pass
@@ -412,7 +412,7 @@ class MetaData:
     
             logger.log('Returned Meta: %s' % meta)
             return meta  
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error formatting meta: %s' % e)
             return meta  
 
@@ -526,7 +526,7 @@ class MetaData:
 
         try:    
             matchedrow = self.DB.select_single(sql_select)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error selecting from cache db: %s' % e)
             return None
         
@@ -568,7 +568,7 @@ class MetaData:
         
         try:
             matchedrow = self.DB.select_single(sql_select)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error selecting from cache db: %s' % e)
             return None
             
@@ -857,7 +857,7 @@ class MetaData:
         try:
             if imdb_id:
                 tvdb_id = tvdb.get_show_by_imdb(imdb_id)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error retreiving from thetvdb.com: %s ' % e)
             tvdb_id = ''
             pass
@@ -872,7 +872,7 @@ class MetaData:
                 #if year:
                 #    name = name + ' ' + year
                 show_list=tvdb.get_matching_shows(name)
-            except Exception, e:
+            except Exception as e:
                 logger.log_error('************* Error retreiving from thetvdb.com: %s ' % e)
                 show_list = []
                 pass
@@ -895,7 +895,7 @@ class MetaData:
                             imdb_id = utils.clean_string(junk3)
                         break
                         
-                except Exception, e:
+                except Exception as e:
                     logger.log_error('************* Error retreiving from thetvdb.com: %s ' % e)
 
         if tvdb_id:
@@ -903,7 +903,7 @@ class MetaData:
 
             try:
                 show = tvdb.get_show(tvdb_id)
-            except Exception, e:
+            except Exception as e:
                 logger.log_error('************* Error retreiving from thetvdb.com: %s ' % e)
                 show = None
                 pass
@@ -1137,7 +1137,7 @@ class MetaData:
         
         try:     
             matchedrow = self.DB.select_single(sql_select)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error attempting to select from tvshow_meta table: %s ' % e)
             pass   
 
@@ -1187,7 +1187,7 @@ class MetaData:
         
         try:
             matchedrow = self.DB.select_single(sql_select)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error attempting to select from tvshow_meta table: %s ' % e)
             pass
                         
@@ -1300,7 +1300,7 @@ class MetaData:
             logger.log('SQL SELECT: %s' % sql_select)
             
             matchedrow = self.DB.select_single(sql_select)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error attempting to select from Episode table: %s ' % e)
             return None
                         
@@ -1357,7 +1357,7 @@ class MetaData:
         if air_date:
             try:
                 episode = tvdb.get_episode_by_airdate(tvdb_id, air_date)
-            except Exception, e:
+            except Exception as e:
                 logger.log_error('************* Error retreiving from thetvdb.com: %s ' % e)
                 episode = None
                 pass
@@ -1376,7 +1376,7 @@ class MetaData:
         else:
             try:
                 episode = tvdb.get_episode_by_season_ep(tvdb_id, season, episode)
-            except Exception, e:
+            except Exception as e:
                 logger.log_error('************* Error retreiving from thetvdb.com: %s ' % e)
                 episode = None
                 pass
@@ -1737,7 +1737,7 @@ class MetaData:
         
         try:
             images = tvdb.get_show_image_choices(tvdb_id)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error retreiving from thetvdb.com: %s ' % e)
             images = None
             pass
@@ -1863,8 +1863,6 @@ class MetaData:
             temp_cache = self.__cache_batch_lookup_by_id(media_type, batch_names)
             if temp_cache:
                 cache_meta += temp_cache            
-            print cache_meta
-
 
         #Check if any records were not found in cache, store them in list if not found
         no_cache_ids = []

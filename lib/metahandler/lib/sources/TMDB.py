@@ -4,7 +4,7 @@ import urllib, re
 from datetime import datetime
 import time
 
-from modules import Net
+from metahandler.lib.modules import Net
 net = Net()
 
 from metahandler.lib.modules import log_utils
@@ -59,7 +59,7 @@ class TMDB(object):
         logger.log('Requesting TMDB : %s' % url)
         try:
             meta = simplejson.loads(net.http_GET(url,{"Accept":"application/json"}).content)
-        except Exception, e:
+        except Exception as e:
             logger.log_error("Error connecting to TMDB: %s " % e)
             return None
 
@@ -86,7 +86,7 @@ class TMDB(object):
         logger.log('Requesting TMDB : %s' % url)
         try:
             meta = simplejson.loads(net.http_GET(url,{"Accept":"application/json"}).content)
-        except Exception, e:
+        except Exception as e:
             logger.log_error("Error connecting to TMDB: %s " % e)
             return None
 
@@ -102,7 +102,7 @@ class TMDB(object):
         strptime = lambda date_string, format: datetime(*(time.strptime(date_string, format)[0:6]))
         try:
             a = strptime(string, in_format).strftime(out_format)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error Date conversion failed: %s' % e)
             return None
         return a
@@ -163,7 +163,7 @@ class TMDB(object):
                 logger.log('Requesting OMDB : %s' % url)
                 meta = simplejson.loads(net.http_GET(url).content)
                 logger.log('OMDB Meta: %s' % meta)
-            except Exception, e:
+            except Exception as e:
                 logger.log_error("Error connecting to OMDB: %s " % e)
                 return {}
 
