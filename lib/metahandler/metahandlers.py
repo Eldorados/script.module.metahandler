@@ -360,7 +360,9 @@ class MetaData:
         '''      
 
         try:
-            #We want to send back the name that was passed in   
+            #We want to send back the name that was passed in
+            meta = meta['meta_data']
+            meta_data = {}
             meta['title'] = name
             
             #Change cast back into a tuple
@@ -606,7 +608,7 @@ class MetaData:
             
             #Else ensure we use the dict passed in
             else:
-                meta = meta_group
+                meta = meta_group['meta_data']
                 
             #strip title
             meta['title'] =  utils.clean_string(name.lower())
@@ -619,7 +621,8 @@ class MetaData:
             
             logger.log('Saving cache information: %s' % meta)
 
-            if media_type == constants.type_movie:
+            sql_insert = ''
+            if media_type == constants.type_movie and meta['imdb_id'] and meta['tmdb_id'] and meta['title'] and meta['year']:
                 sql_insert = self.__insert_from_dict(table, 22)
                 values = (meta['imdb_id'], meta['tmdb_id'], meta['title'],
                                 meta['year'], meta['director'], meta['writer'], meta['tagline'], meta['cast'],
@@ -627,7 +630,7 @@ class MetaData:
                                 meta['premiered'], meta['genre'], meta['studio'], meta['thumb_url'], meta['cover_url'],
                                 meta['trailer_url'], meta['backdrop_url'], None, meta['overlay'])
 
-            elif media_type == constants.type_tvshow:
+            elif media_type == constants.type_tvshow and meta['imdb_id'] and meta['tvdb_id'] and meta['title']:
                 sql_insert = self.__insert_from_dict(table, 19)
                 logger.log('SQL INSERT: %s' % sql_insert)
                 values = (meta['imdb_id'], meta['tvdb_id'], meta['title'], meta['year'], 
@@ -636,8 +639,9 @@ class MetaData:
                         meta['cover_url'], meta['trailer_url'], meta['backdrop_url'], None, meta['overlay'])
 
             #Commit all transactions
-            self.DB.insert(sql_insert, values)
-            logger.log('SQL INSERT Successfully Commited')
+            if sql_insert:
+                self.DB.insert(sql_insert, values)
+                logger.log('SQL INSERT Successfully Commited')
             
             #Break loop if we are dealing with just 1 record
             if type(meta_group) is dict:
@@ -825,7 +829,8 @@ class MetaData:
                     meta['backdrop_url'] = backdrop['image']['url']
                     break
 
-        return meta
+        meta_data['meta_data'] = meta
+        return meta_data
         
         
     def _get_tvdb_meta(self, imdb_id, name, year=''):

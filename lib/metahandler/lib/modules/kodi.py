@@ -77,12 +77,12 @@ def get_keyboard(heading, default=''):
 
 def get_plugin_url(queries):
     try:
-        query = urllib.urlencode(queries)
+        query = urllib.parse.urlencode(queries)
     except UnicodeEncodeError:
         for k in queries:
             if isinstance(queries[k], str):
                 queries[k] = queries[k].encode('utf-8')
-        query = urllib.urlencode(queries)
+        query = urllib.parse.urlencode(queries)
 
     return sys.argv[0] + '?' + query
 

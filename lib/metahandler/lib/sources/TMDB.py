@@ -109,7 +109,7 @@ class TMDB(object):
         
     def _upd_key(self, meta, key):
         ''' Helper method to check if a key exists and if it has valid data, returns True if key needs to be udpated with valid data '''    
-        if key in meta == false:
+        if key in meta == False:
             return True 
         else:
             try:
@@ -152,7 +152,7 @@ class TMDB(object):
             if imdb_id:
                 url = self.omdb_api % imdb_id
             else:
-                name = urllib.quote(name)
+                name = urllib.parse.quote(name)
                 if year:
                     url = self.omdb_nameyear_api % (name, year)
                 else:
