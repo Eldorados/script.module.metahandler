@@ -4,11 +4,10 @@ import urllib, re
 from datetime import datetime
 import time
 
-from addon.common.net import Net
-net = Net()
-
 from metahandler.lib.modules import log_utils
 from metahandler.lib.modules import kodi
+from metahandler.lib.modules import net
+net = net.Net()
 logger = log_utils.Logger.get_logger()
 
 
@@ -59,7 +58,7 @@ class TMDB(object):
         logger.log('Requesting TMDB : %s' % url)
         try:
             meta = simplejson.loads(net.http_GET(url,{"Accept":"application/json"}).content)
-        except Exception, e:
+        except Exception as e:
             logger.log_error("Error connecting to TMDB: %s " % e)
             return None
 
@@ -86,7 +85,7 @@ class TMDB(object):
         logger.log('Requesting TMDB : %s' % url)
         try:
             meta = simplejson.loads(net.http_GET(url,{"Accept":"application/json"}).content)
-        except Exception, e:
+        except Exception as e:
             logger.log_error("Error connecting to TMDB: %s " % e)
             return None
 
@@ -102,7 +101,7 @@ class TMDB(object):
         strptime = lambda date_string, format: datetime(*(time.strptime(date_string, format)[0:6]))
         try:
             a = strptime(string, in_format).strftime(out_format)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error Date conversion failed: %s' % e)
             return None
         return a
@@ -110,7 +109,7 @@ class TMDB(object):
         
     def _upd_key(self, meta, key):
         ''' Helper method to check if a key exists and if it has valid data, returns True if key needs to be udpated with valid data '''    
-        if meta.has_key(key) == False :
+        if key in meta == False:
             return True 
         else:
             try:
@@ -153,7 +152,7 @@ class TMDB(object):
             if imdb_id:
                 url = self.omdb_api % imdb_id
             else:
-                name = urllib.quote(name)
+                name = urllib.parse.quote(name)
                 if year:
                     url = self.omdb_nameyear_api % (name, year)
                 else:
@@ -163,7 +162,7 @@ class TMDB(object):
                 logger.log('Requesting OMDB : %s' % url)
                 meta = simplejson.loads(net.http_GET(url).content)
                 logger.log('OMDB Meta: %s' % meta)
-            except Exception, e:
+            except Exception as e:
                 logger.log_error("Error connecting to OMDB: %s " % e)
                 return {}
 
@@ -190,7 +189,7 @@ class TMDB(object):
         
         if self._upd_key(meta, 'overview') and self._upd_key(meta, 'plot'):
             logger.log('-- IMDB - Updating Overview')
-            if imdb_meta.has_key('Plot'):
+            if 'Plot' in imdb_meta:
                 meta['overview']=imdb_meta['Plot']           
         
         if self._upd_key(meta, 'released') and self._upd_key(meta, 'premiered'):
@@ -219,7 +218,7 @@ class TMDB(object):
             if imdb_rating not in ('N/A', '', None):
                 meta['rating'] = imdb_rating
             else:
-                if meta.has_key('tmdb_rating'):
+                if 'tmdb_rating' in meta:
                     meta['rating'] = meta['tmdb_rating']
 
         if self._upd_key(meta, 'certification'):
@@ -299,7 +298,7 @@ class TMDB(object):
 
     def _search_movie(self, name, year=''):
         ''' Helper method to start a TMDB Movie.search request - search by Name/Year '''
-        name = urllib.quote(self.__clean_name(name))
+        name = urllib.parse.quote(self.__clean_name(name))
         if year:
             name = name + '&year=' + year
         return self._do_request('search/movie','query='+name)
@@ -365,7 +364,7 @@ class TMDB(object):
                 meta = self._search_movie(name,'')
             if meta and meta['total_results'] != 0 and meta['results']:
                 tmdb_id = meta['results'][0]['id']
-                if meta['results'][0].has_key('imdb_id'):
+                if 'imdb_id' in meta['results'][0]:
                     imdb_id = meta['results'][0]['imdb_id']
             
             #Didn't get a match by name at TMDB, let's try IMDB by name
@@ -390,9 +389,9 @@ class TMDB(object):
                 cast = meta['casts']
                 trailers = meta['trailers']
                 
-                if meta.has_key('poster_path') and meta['poster_path']:
+                if 'poster_path' in meta and meta['poster_path']:
                     meta['cover_url'] = meta['poster_path']
-                if meta.has_key('backdrop_path') and meta['backdrop_path']:
+                if 'backdrop_path' in meta and meta['backdrop_path']:
                     meta['backdrop_url'] = meta['backdrop_path']
                 meta['released'] = meta['release_date']
                 #Set rating to 0 so that we can force it to be grabbed from IMDB
@@ -417,7 +416,7 @@ class TMDB(object):
                     meta['trailers'] = ''
 
                 #Update any missing information from IDMB
-                if meta.has_key('imdb_id'):
+                if 'imdb_id' in meta:
                     imdb_id = meta['imdb_id']
             if imdb_id and kodi.get_setting('omdbapi_fallback')=='true': 
                 logger.log('Requesting OMDB for extra information: %s' % imdb_id)

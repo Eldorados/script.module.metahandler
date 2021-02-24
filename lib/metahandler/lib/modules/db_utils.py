@@ -1,6 +1,6 @@
-import kodi
-import db_utils
-import log_utils
+from metahandler.lib.modules import kodi
+from metahandler.lib.modules import db_utils
+from metahandler.lib.modules import log_utils
 
 import xbmcvfs
 
@@ -24,13 +24,13 @@ class DB_Connection():
                 kodi.get_setting('db_pass') and \
                 kodi.get_setting('db_name'):
                 import mysql.connector as new_database
-                logger.log_notice('Loading MySQLdb as DB engine version: %s' % new_database.version.VERSION_TEXT)
+                logger.log_info('Loading MySQLdb as DB engine version: %s' % new_database.version.VERSION_TEXT)
                 self.DB_Type = 'mysql'
             else:
                 raise ValueError('MySQL not enabled or not setup correctly')
         except:
             from sqlite3 import dbapi2 as new_database
-            logger.log_notice('Loading sqlite3 as DB engine version: %s' % new_database.sqlite_version)
+            logger.log_info('Loading sqlite3 as DB engine version: %s' % new_database.sqlite_version)
             self.DB_Type = 'sqlite'
 
         self.videocache = videocache
@@ -244,7 +244,7 @@ class DB_Connection():
         # except (MySQLdb.Error, MySQLdb.Warning) as e:
         #     logger.log_error('************* Error selecting from mysql cache table: %s ' % e)
         #     pass
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error selecting from cache table: %s ' % e)
             pass
 
@@ -262,7 +262,7 @@ class DB_Connection():
         # except (MySQLdb.Error, MySQLdb.Warning) as e:
         #     logger.log_error('************* Error selecting from mysql cache table: %s ' % e)
         #     pass
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error selecting from cache table: %s ' % e)
             pass
 
@@ -277,7 +277,7 @@ class DB_Connection():
         # except (MySQLdb.Error, MySQLdb.Warning) as e:
         #     logger.log_error('************* Error inserting to mysql cache table: %s ' % e)
         #     pass
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error inserting to cache table: %s ' % e)
             pass
 
@@ -292,13 +292,13 @@ class DB_Connection():
         # except (MySQLdb.Error, MySQLdb.Warning) as e:
         #     logger.log_error('************* Error committing to mysql cache table: %s ' % e)
         #     pass
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error committing to cache table: %s ' % e)
             pass
 
 
     def delete_cache_db(self) :
-        logger.log_notice("Metahandler - deleting cache database...")
+        logger.log_info("Metahandler - deleting cache database...")
         try:
             if xbmcvfs.exists(self.videocache): xbmcvfs.delete(self.videocache)
             return True

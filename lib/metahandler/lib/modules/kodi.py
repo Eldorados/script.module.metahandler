@@ -1,6 +1,6 @@
 """
     Metahandler Addon for Kodi
-    Copyright (C) 2016 t0mm0, tknorris
+    Copyright (C) 2021 Eldorado
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ import urllib
 import sys
 import os
 import re
-import constants
+from . import constants
 
 addon = xbmcaddon.Addon(constants.addon_id)
 get_setting = addon.getSetting
@@ -33,16 +33,16 @@ sleep = xbmc.sleep
 _log = xbmc.log
 
 def get_path():
-    return addon.getAddonInfo('path').decode('utf-8')
+    return addon.getAddonInfo('path')
 
 def get_profile():
-    return addon.getAddonInfo('profile').decode('utf-8')
+    return addon.getAddonInfo('profile')
 
 def translate_path(path):
-    return xbmc.translatePath(path).decode('utf-8')
+    return xbmcvfs.translatePath(path)
 
 def set_setting(id, value):
-    if not isinstance(value, basestring): value = str(value)
+    if not isinstance(value, str): value = str(value)
     addon.setSetting(id, value)
 
 def get_version():
@@ -77,12 +77,12 @@ def get_keyboard(heading, default=''):
 
 def get_plugin_url(queries):
     try:
-        query = urllib.urlencode(queries)
+        query = urllib.parse.urlencode(queries)
     except UnicodeEncodeError:
         for k in queries:
-            if isinstance(queries[k], unicode):
+            if isinstance(queries[k], str):
                 queries[k] = queries[k].encode('utf-8')
-        query = urllib.urlencode(queries)
+        query = urllib.parse.urlencode(queries)
 
     return sys.argv[0] + '?' + query
 
@@ -94,5 +94,5 @@ def notify(header=None, msg='', duration=2000, sound=None):
     try:
         xbmcgui.Dialog().notification(header, msg, icon_path, duration, sound)
     except:
-        builtin = "XBMC.Notification(%s,%s, %s, %s)" % (header, msg, duration, icon_path)
+        builtin = "Notification(%s,%s, %s, %s)" % (header, msg, duration, icon_path)
         xbmc.executebuiltin(builtin)

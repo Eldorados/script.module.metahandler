@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<settings>
+<settings version="1">
 <category label="Metahandler">
     <setting id="meta_folder_location" type="folder" label="Meta Data Save Location" default="special://profile/addon_data/script.module.metahandler/"/>
 	  <setting id="use_remote_db" type="bool" 	label="Use a remote MySQL DB" default="False"/>

@@ -17,14 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import urllib, urllib2
+import urllib
 import datetime
 import random
 import re
 import copy
 
 import xml.parsers.expat as expat
-from cStringIO import StringIO
+from io import StringIO
 from zipfile import ZipFile
 
 class TheTVDB(object):
@@ -251,14 +251,12 @@ class TheTVDB(object):
     # language can be "all", "en", "fr", etc.
     def get_matching_shows(self, show_name, language=None, want_raw=False):
         """Get a list of shows matching show_name."""
-        if type(show_name) == type(u''):
-            show_name = show_name.encode('utf-8')
         get_args = {"seriesname": show_name}
         if language is not None:
             get_args['language'] = language
         else:
             get_args['language'] = self.language
-        get_args = urllib.urlencode(get_args, doseq=True)
+        get_args = urllib.parse.urlencode(get_args, doseq=True)
         url = "%s/GetSeries.php?%s" % (self.base_url, get_args)
         if want_raw:
             filt_func = lambda name, attrs: attrs if name == "Series" else None
@@ -373,7 +371,7 @@ class TheTVDB(object):
 
 
     def _get_xml_data(self, url, filter_func = None, zip_name = None, callback = None):
-        data = urllib2.urlopen(url)
+        data = urllib.request.urlopen(url)
         if zip_name:
             zipfile = ZipFile(StringIO(data.read()))
             data = zipfile.open(zip_name)

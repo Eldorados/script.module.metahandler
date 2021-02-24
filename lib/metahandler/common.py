@@ -1,6 +1,6 @@
 """
     metahandler XBMC Addon
-    Copyright (C) 2012 Eldorado
+    Copyright (C) 2021 Eldorado
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 """
 
 import os
-from lib.modules import kodi
+from metahandler.lib.modules import kodi
 
 addon_path = kodi.get_path()
 profile_path = kodi.translate_path(kodi.get_profile())

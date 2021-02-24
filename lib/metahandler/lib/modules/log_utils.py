@@ -18,14 +18,14 @@
 import json
 import xbmc
 import xbmcaddon
-from xbmc import LOGDEBUG, LOGERROR, LOGFATAL, LOGINFO, LOGNONE, LOGNOTICE, LOGSEVERE, LOGWARNING  # @UnusedImport
+from xbmc import LOGDEBUG, LOGERROR, LOGFATAL, LOGINFO, LOGNONE, LOGWARNING  # @UnusedImport
 
-import constants
+from metahandler.lib.modules import constants
 
 addon_meta = xbmcaddon.Addon(constants.addon_id)
 
 def execute_jsonrpc(command):
-    if not isinstance(command, basestring):
+    if not isinstance(command, str):
         command = json.dumps(command)
     response = xbmc.executeJSONRPC(command)
     return json.loads(response)
@@ -68,12 +68,12 @@ class Logger(object):
                 return
             elif level == LOGDEBUG:
                 if self.__addon_debug:
-                    level = LOGNOTICE
+                    level = LOGINFO
                 else:
                     return
         
         try:
-            if isinstance(msg, unicode):
+            if isinstance(msg, str):
                 msg = '%s (ENCODED)' % (msg.encode('utf-8'))
     
             xbmc.log('%s: %s' % (self.__name, msg), level)
@@ -85,8 +85,8 @@ class Logger(object):
     def log_debug(self, msg):
         self.log(msg, level=LOGDEBUG)
     
-    def log_notice(self, msg):
-        self.log(msg, level=LOGNOTICE)
+    def log_info(self, msg):
+        self.log(msg, level=LOGINFO)
     
     def log_warning(self, msg):
         self.log(msg, level=LOGWARNING)

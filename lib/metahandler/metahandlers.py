@@ -16,15 +16,15 @@ import re
 import sys
 import time
 
-from lib.sources.TMDB import TMDB
-from lib.sources.thetvdbapi import TheTVDB
-from lib.modules import db_utils
-from lib.modules import meta_types
-from lib.modules import utils
-from lib.modules import constants
-from lib.modules import log_utils
-from lib.modules import kodi
-import common
+from metahandler.lib.sources.TMDB import TMDB
+from metahandler.lib.sources.thetvdbapi import TheTVDB
+from metahandler.lib.modules import db_utils
+from metahandler.lib.modules import meta_types
+from metahandler.lib.modules import utils
+from metahandler.lib.modules import constants
+from metahandler.lib.modules import log_utils
+from metahandler.lib.modules import kodi
+from metahandler import common
 
 logger = log_utils.Logger.get_logger()
 
@@ -216,7 +216,7 @@ class MetaData:
 
         try:    
             matchedrow = self.DB.select_single(sql_select)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error selecting from cache db: %s' % e)
             return None
 
@@ -312,7 +312,7 @@ class MetaData:
         logger.log('SQL Select: %s' % sql_select)
         try:    
             matchedrow = self.DB.select_single(sql_select)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error selecting from cache db: %s' % e)
             return None
         
@@ -360,7 +360,9 @@ class MetaData:
         '''      
 
         try:
-            #We want to send back the name that was passed in   
+            #We want to send back the name that was passed in
+            meta = meta['meta_data']
+            meta_data = {}
             meta['title'] = name
             
             #Change cast back into a tuple
@@ -381,7 +383,7 @@ class MetaData:
                 if trailer_id:
                     meta['trailer'] = 'plugin://plugin.video.youtube/?action=play_video&videoid=%s' % trailer_id
                     
-            except Exception, e:
+            except Exception as e:
                 meta['trailer'] = ''
                 logger.log_warning('Failed to set trailer: %s' % e)
                 pass
@@ -412,7 +414,7 @@ class MetaData:
     
             logger.log('Returned Meta: %s' % meta)
             return meta  
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error formatting meta: %s' % e)
             return meta  
 
@@ -526,7 +528,7 @@ class MetaData:
 
         try:    
             matchedrow = self.DB.select_single(sql_select)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error selecting from cache db: %s' % e)
             return None
         
@@ -568,7 +570,7 @@ class MetaData:
         
         try:
             matchedrow = self.DB.select_single(sql_select)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error selecting from cache db: %s' % e)
             return None
             
@@ -606,12 +608,12 @@ class MetaData:
             
             #Else ensure we use the dict passed in
             else:
-                meta = meta_group
+                meta = meta_group['meta_data']
                 
             #strip title
             meta['title'] =  utils.clean_string(name.lower())
                     
-            if meta.has_key('cast'):
+            if 'cast' in meta:
                 meta['cast'] = str(meta['cast'])
     
             #set default overlay - watched status
@@ -619,7 +621,8 @@ class MetaData:
             
             logger.log('Saving cache information: %s' % meta)
 
-            if media_type == constants.type_movie:
+            sql_insert = ''
+            if media_type == constants.type_movie and meta['imdb_id'] and meta['tmdb_id'] and meta['title'] and meta['year']:
                 sql_insert = self.__insert_from_dict(table, 22)
                 values = (meta['imdb_id'], meta['tmdb_id'], meta['title'],
                                 meta['year'], meta['director'], meta['writer'], meta['tagline'], meta['cast'],
@@ -627,7 +630,7 @@ class MetaData:
                                 meta['premiered'], meta['genre'], meta['studio'], meta['thumb_url'], meta['cover_url'],
                                 meta['trailer_url'], meta['backdrop_url'], None, meta['overlay'])
 
-            elif media_type == constants.type_tvshow:
+            elif media_type == constants.type_tvshow and meta['imdb_id'] and meta['tvdb_id'] and meta['title']:
                 sql_insert = self.__insert_from_dict(table, 19)
                 logger.log('SQL INSERT: %s' % sql_insert)
                 values = (meta['imdb_id'], meta['tvdb_id'], meta['title'], meta['year'], 
@@ -636,8 +639,9 @@ class MetaData:
                         meta['cover_url'], meta['trailer_url'], meta['backdrop_url'], None, meta['overlay'])
 
             #Commit all transactions
-            self.DB.insert(sql_insert, values)
-            logger.log('SQL INSERT Successfully Commited')
+            if sql_insert:
+                self.DB.insert(sql_insert, values)
+                logger.log('SQL INSERT Successfully Commited')
             
             #Break loop if we are dealing with just 1 record
             if type(meta_group) is dict:
@@ -787,7 +791,7 @@ class MetaData:
             else:
                 meta['genre'] = meta['genre'] + ' / ' + genre.get('name','')
         
-        if md.has_key('tvdb_studios'):
+        if 'tvdb_studios' in md:
             meta['studio'] = md.get('tvdb_studios', '')
         try:
             meta['studio'] = (md.get('studios', '')[0])['name']
@@ -806,7 +810,7 @@ class MetaData:
         
         meta['cover_url'] = md.get('cover_url', '')
         meta['backdrop_url'] = md.get('backdrop_url', '')
-        if md.has_key('posters'):
+        if 'posters' in md:
             # find first thumb poster url
             for poster in md['posters']:
                 if poster['image']['size'] == 'thumb':
@@ -818,14 +822,15 @@ class MetaData:
                     meta['cover_url'] = poster['image']['url']
                     break
 
-        if md.has_key('backdrops'):
+        if 'backdrops' in md:
             # find first original backdrop url
             for backdrop in md['backdrops']:
                 if backdrop['image']['size'] == 'original':
                     meta['backdrop_url'] = backdrop['image']['url']
                     break
 
-        return meta
+        meta_data['meta_data'] = meta
+        return meta_data
         
         
     def _get_tvdb_meta(self, imdb_id, name, year=''):
@@ -857,7 +862,7 @@ class MetaData:
         try:
             if imdb_id:
                 tvdb_id = tvdb.get_show_by_imdb(imdb_id)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error retreiving from thetvdb.com: %s ' % e)
             tvdb_id = ''
             pass
@@ -872,7 +877,7 @@ class MetaData:
                 #if year:
                 #    name = name + ' ' + year
                 show_list=tvdb.get_matching_shows(name)
-            except Exception, e:
+            except Exception as e:
                 logger.log_error('************* Error retreiving from thetvdb.com: %s ' % e)
                 show_list = []
                 pass
@@ -895,7 +900,7 @@ class MetaData:
                             imdb_id = utils.clean_string(junk3)
                         break
                         
-                except Exception, e:
+                except Exception as e:
                     logger.log_error('************* Error retreiving from thetvdb.com: %s ' % e)
 
         if tvdb_id:
@@ -903,7 +908,7 @@ class MetaData:
 
             try:
                 show = tvdb.get_show(tvdb_id)
-            except Exception, e:
+            except Exception as e:
                 logger.log_error('************* Error retreiving from thetvdb.com: %s ' % e)
                 show = None
                 pass
@@ -944,15 +949,15 @@ class MetaData:
                     imdb_meta = tmdb.search_imdb(name, imdb_id)
                     if imdb_meta:
                         imdb_meta = tmdb.update_imdb_meta(meta, imdb_meta)
-                        if imdb_meta.has_key('overview'):
+                        if 'overview' in imdb_meta:
                             meta['plot'] = imdb_meta['overview']
-                        if imdb_meta.has_key('rating'):
+                        if 'rating' in imdb_meta:
                             meta['rating'] = float(imdb_meta['rating'])
-                        if imdb_meta.has_key('runtime'):
+                        if 'runtime' in imdb_meta:
                             meta['duration'] = int(imdb_meta['runtime']) * 60
-                        if imdb_meta.has_key('cast'):
+                        if 'cast' in imdb_meta:
                             meta['cast'] = imdb_meta['cast']
-                        if imdb_meta.has_key('cover_url'):
+                        if 'cover_url' in imdb_meta:
                             meta['cover_url'] = imdb_meta['cover_url']
 
                 return meta
@@ -1137,7 +1142,7 @@ class MetaData:
         
         try:     
             matchedrow = self.DB.select_single(sql_select)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error attempting to select from tvshow_meta table: %s ' % e)
             pass   
 
@@ -1187,7 +1192,7 @@ class MetaData:
         
         try:
             matchedrow = self.DB.select_single(sql_select)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error attempting to select from tvshow_meta table: %s ' % e)
             pass
                         
@@ -1300,7 +1305,7 @@ class MetaData:
             logger.log('SQL SELECT: %s' % sql_select)
             
             matchedrow = self.DB.select_single(sql_select)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error attempting to select from Episode table: %s ' % e)
             return None
                         
@@ -1357,7 +1362,7 @@ class MetaData:
         if air_date:
             try:
                 episode = tvdb.get_episode_by_airdate(tvdb_id, air_date)
-            except Exception, e:
+            except Exception as e:
                 logger.log_error('************* Error retreiving from thetvdb.com: %s ' % e)
                 episode = None
                 pass
@@ -1376,7 +1381,7 @@ class MetaData:
         else:
             try:
                 episode = tvdb.get_episode_by_season_ep(tvdb_id, season, episode)
-            except Exception, e:
+            except Exception as e:
                 logger.log_error('************* Error retreiving from thetvdb.com: %s ' % e)
                 episode = None
                 pass
@@ -1737,7 +1742,7 @@ class MetaData:
         
         try:
             images = tvdb.get_show_image_choices(tvdb_id)
-        except Exception, e:
+        except Exception as e:
             logger.log_error('************* Error retreiving from thetvdb.com: %s ' % e)
             images = None
             pass
@@ -1863,8 +1868,6 @@ class MetaData:
             temp_cache = self.__cache_batch_lookup_by_id(media_type, batch_names)
             if temp_cache:
                 cache_meta += temp_cache            
-            print cache_meta
-
 
         #Check if any records were not found in cache, store them in list if not found
         no_cache_ids = []
