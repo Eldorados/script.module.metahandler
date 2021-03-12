@@ -141,53 +141,56 @@ class MetaData:
         '''
         Requests from TVDB a list of images for a given tvshow
         and list of seasons
-        
         Args:
             tvshowtitle (str): TV Show Title
             imdb_id (str): IMDB ID
             seasons (str): a list of seasons, numbers only
-                        
         Returns:
             (list) list of covers found for each season
         '''     
-        if imdb_id:
-            imdb_id = utils.valid_imdb_id(imdb_id)
-                
-        coversList = []
-        tvdb_id = self._get_tvdb_id(tvshowtitle, imdb_id)
-        images  = None
-        for season in seasons:
-            meta = self._cache_lookup_season(imdb_id, tvdb_id, season)
-            if meta is None:
-                meta = {}
-                if tvdb_id is None or tvdb_id == '':
-                    meta['cover_url']=''
-                elif images:
-                    meta['cover_url']=self._find_cover(season, images )
-                else:
-                    if len(str(season)) == 4:
-                        meta['cover_url']=''
-                    else:
-                        images = self._get_season_posters(tvdb_id, season)
-                        meta['cover_url']=self._find_cover(season, images )
-                        
-                meta['season'] = int(season)
-                meta['tvdb_id'] = tvdb_id
-                meta['imdb_id'] = imdb_id
-                meta['overlay'] = overlay
-                meta['backdrop_url'] = self._get_tvshow_backdrops(imdb_id, tvdb_id)
-                              
-                #Ensure we are not sending back any None values, XBMC doesn't like them
-                meta = utils.remove_none_values(meta)
-                                
-                self._cache_save_season_meta(meta)
+        try:
+            if imdb_id:
+                imdb_id = utils.valid_imdb_id(imdb_id)
 
-            #Set Watched flag
-            meta['playcount'] = utils.set_playcount(meta['overlay'])
-            
-            coversList.append(meta)
-                   
-        return coversList
+            coversList = []
+            tvdb_id = self._get_tvdb_id(tvshowtitle, imdb_id)
+            images  = None
+            for season in seasons:
+                meta = self._cache_lookup_season(imdb_id, tvdb_id, season)
+                if meta is None:
+                    meta = {}
+                    if tvdb_id is None or tvdb_id == '':
+                        meta['cover_url']=''
+                    elif images:
+                        meta['cover_url']=self._find_cover(season, images )
+                    else:
+                        if len(str(season)) == 4:
+                            meta['cover_url']=''
+                        else:
+                            images = self._get_season_posters(tvdb_id, season)
+                            meta['cover_url']=self._find_cover(season, images )
+
+                    meta['season'] = int(season)
+                    meta['tvdb_id'] = tvdb_id
+                    meta['imdb_id'] = imdb_id
+                    meta['overlay'] = overlay
+                    meta['backdrop_url'] = self._get_tvshow_backdrops(imdb_id, tvdb_id)
+                    #Ensure we are not sending back any None values, XBMC doesn't like them
+                    meta = utils.remove_none_values(meta)
+                    self._cache_save_season_meta(meta)
+
+                #Set Watched flag
+                meta['playcount'] = utils.set_playcount(meta['overlay'])
+
+                coversList.append(meta)
+            return coversList
+        except:
+            import traceback
+            traceback.print_exc()
+
+
+
+
 
 
     def __insert_from_dict(self, table, size):
@@ -1041,7 +1044,6 @@ class MetaData:
     def get_episode_meta(self, tvshowtitle, imdb_id, season, episode, air_date='', episode_title='', overlay=''):
         '''
         Requests meta data from TVDB for TV episodes, searches local cache db first.
-        
         Args:
             tvshowtitle (str): full name of tvshow you are searching
             imdb_id (str): IMDB ID
@@ -1051,70 +1053,77 @@ class MetaData:
             air_date (str): In cases where episodes have no episode number but only an air date - eg. daily talk shows
             episode_title (str): The title of the episode, gets set to the title infolabel which must exist
             overlay (int): To set the default watched status (6=unwatched, 7=watched) on new videos
-                        
+
         Returns:
             DICT. It must also return an empty dict when
             no meta info was found in order to save these.
         '''  
-              
+
         logger.log('---------------------------------------------------------------------------------------')
         logger.log('Attempting to retrieve episode meta data for: imdbid: %s season: %s episode: %s air_date: %s' % (imdb_id, season, episode, air_date))
-               
-        if not season:
-            season = 0
-        if not episode:
-            episode = 0
-        
-        if imdb_id:
-            imdb_id = utils.valid_imdb_id(imdb_id)
 
-        #Find tvdb_id for the TVshow
-        tvdb_id = self._get_tvdb_id(tvshowtitle, imdb_id)
+        try:
+            if not season:
+                season = 0
+            if not episode:
+                episode = 0
 
-        #Check if it exists in local cache first
-        meta = self._cache_lookup_episode(imdb_id, tvdb_id, season, episode, air_date)
-        
-        #If not found lets scrape online sources
-        if not meta:
+            if imdb_id:
+                imdb_id = utils.valid_imdb_id(imdb_id)
 
-            #I need a tvdb id to scrape The TVDB
-            if tvdb_id:
-                meta = self._get_tvdb_episode_data(tvdb_id, season, episode, air_date)
-            else:
-                logger.log("No TVDB ID available, could not find TVshow with imdb: %s " % imdb_id)
+            #Find tvdb_id for the TVshow
+            tvdb_id = self._get_tvdb_id(tvshowtitle, imdb_id)
 
-            #If nothing found
+            #Check if it exists in local cache first
+            meta = self._cache_lookup_episode(imdb_id, tvdb_id, season, episode, air_date)
+
+            #If not found lets scrape online sources
             if not meta:
-                #Init episode meta structure
-                meta = meta_types.init_episode_meta(imdb_id, tvdb_id, episode_title, season, episode, air_date)
-            
-            #set overlay if used, else default to unwatched
-            if overlay:
-                meta['overlay'] = int(overlay)
-            else:
-                meta['overlay'] = 6
-                    
-            if not meta['title']:
-                meta['title']= episode_title
-            
-            meta['tvdb_id'] = tvdb_id
-            meta['imdb_id'] = imdb_id
-            meta['cover_url'] = meta['poster']
-            meta = self._get_tv_extra(meta)
-                           
-            self._cache_save_episode_meta(meta)
 
-        #Ensure we are not sending back any None values, XBMC doesn't like them
-        meta = utils.remove_none_values(meta)
+                #I need a tvdb id to scrape The TVDB
+                if tvdb_id:
+                    meta = self._get_tvdb_episode_data(tvdb_id, season, episode, air_date)
+                else:
+                    logger.log("No TVDB ID available, could not find TVshow with imdb: %s " % imdb_id)
 
-        #Set Watched flag
-        meta['playcount'] = utils.set_playcount(meta['overlay'])
-        
-        #Add key for subtitles to work
-        meta['TVShowTitle']= tvshowtitle
-        
-        logger.log('Returned Meta: %s' % meta)
-        return meta
+                #If nothing found
+                if not meta:
+                    #Init episode meta structure
+                    meta = meta_types.init_episode_meta(imdb_id, tvdb_id, episode_title, season, episode, air_date)
+
+
+                logger.log("meta from Metahandler = %s" % meta)
+
+                #set overlay if used, else default to unwatched
+                if overlay:
+                    meta['overlay'] = int(overlay)
+                else:
+                    meta['overlay'] = 6
+
+                if not meta.get('title'):
+                    meta['title']= episode_title
+
+                meta['tvdb_id'] = tvdb_id
+                meta['imdb_id'] = imdb_id
+                meta['cover_url'] = meta.get('poster')
+                meta = self._get_tv_extra(meta)
+
+                self._cache_save_episode_meta(meta)
+
+            #Ensure we are not sending back any None values, XBMC doesn't like them
+            meta = utils.remove_none_values(meta)
+
+            #Set Watched flag
+            meta['playcount'] = utils.set_playcount(meta['overlay'])
+
+            #Add key for subtitles to work
+            meta['TVShowTitle']= tvshowtitle
+
+            logger.log('Returned Meta: %s' % meta)
+            return meta
+        except:
+            import traceback
+            traceback.print_exc()
 
 
     def _get_tv_extra(self, meta):
@@ -1417,15 +1426,12 @@ class MetaData:
                 return ret
         else:
             return value
-            
-        
+
     def _cache_save_episode_meta(self, meta):
         '''
         Save episode data to local cache db.
-        
         Args:
             meta (dict): episode data to be stored
-                        
         '''      
         if meta['imdb_id']:
             sql_select = 'SELECT * FROM episode_meta WHERE imdb_id = "%s" AND season = %s AND episode = %s AND premiered = "%s" AND episode_id = "%s"'  % (meta['imdb_id'], meta['season'], meta['episode'], meta['premiered'], meta['episode_id'])
@@ -1527,7 +1533,7 @@ class MetaData:
             tmp_meta['season']  = season
             tmp_meta['episode'] = episode
             tmp_meta['premiered'] = air_date
-            
+
             if not watched:
                 watched = self._get_watched_episode(tmp_meta)
                 if watched == 6:
@@ -1535,7 +1541,7 @@ class MetaData:
                 else:
                     watched = 6
             self._update_watched(imdb_id, media_type, watched, name=name, season=season, episode=episode, tvdb_id=tvdb_id, air_date=air_date)
-                
+
 
     def _update_watched(self, imdb_id, media_type, new_value, tmdb_id='', name='', year='', season='', episode='', tvdb_id='', air_date=''):
         '''
@@ -1586,21 +1592,23 @@ class MetaData:
 
         logger.log('Updating watched status for type: %s, imdb id: %s, tmdb_id: %s, new value: %s' % (media_type, imdb_id, tmdb_id, new_value))
         logger.log('SQL UPDATE: %s' % sql_update)
-        self.DB.commit(sql_update)
-
+        try:
+            self.DB.commit(sql_update)
+        except:
+            import traceback
+            traceback.print_exc()
 
     def _get_watched(self, media_type, imdb_id, tmdb_id, season=''):
         '''
         Finds the watched status of the video from the cache db
-        
         Args:
             media_type (str): type of video to update, 'movie', 'tvshow' or 'episode'                    
             imdb_id (str): IMDB ID
             tmdb_id (str): TMDB ID
         Kwargs:
             season (int): tv show season number    
-
         ''' 
+
         sql_select = ''
         if media_type == constants.type_movie:
             if imdb_id:
@@ -1624,11 +1632,9 @@ class MetaData:
     def _get_watched_episode(self, meta):
         '''
         Finds the watched status of the video from the cache db
-        
         Args:
             meta (dict): full data of episode                    
-
-        '''       
+        '''
         if meta['imdb_id']:
             sql_select = "SELECT * FROM episode_meta WHERE imdb_id = '%s'"  % meta['imdb_id']
         elif meta['tvdb_id']:
