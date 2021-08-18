@@ -15,11 +15,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 '''
-from six.moves import http_cookiejar
 import gzip
 import re
 import six
-from six.moves import urllib_request, urllib_parse
+from six.moves import urllib_request, urllib_parse, http_cookiejar
 import socket
 # Set Global timeout - Useful for slow connections and Putlocker.
 socket.setdefaulttimeout(10)
@@ -114,7 +113,7 @@ class Net:
     def _update_opener(self):
         '''
         Builds and installs a new opener to be used by all future calls to
-        :func:`urllib2.urlopen`.
+        :func:`urllib_request.urlopen`.
         '''
         handlers = [urllib_request.HTTPCookieProcessor(self._cj), urllib_request.HTTPBasicAuthHandler()]
 
@@ -294,7 +293,7 @@ class HttpResponse:
         '''
         Args:
             response (:class:`mimetools.Message`): The object returned by a call
-            to :func:`urllib2.urlopen`.
+            to :func:`urllib_request.urlopen`.
         '''
         self._response = response
 

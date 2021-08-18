@@ -17,22 +17,21 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import urllib
+from six.moves import urllib_parse, urllib_request
+import six
 import datetime
 import random
 import re
-import copy
-
 import xml.parsers.expat as expat
-from io import StringIO
 from zipfile import ZipFile
 
+
 class TheTVDB(object):
-    def __init__(self, api_key=None, language = 'en', want_raw = False):
-        #http://thetvdb.com/api/<apikey>/<request>
+    def __init__(self, api_key='', language='en', want_raw=False):
+        # http://thetvdb.com/api/<apikey>/<request>
         self.api_key = api_key
         self.mirror_url = "http://thetvdb.com"
-        self.base_url =  self.mirror_url + "/api"
+        self.base_url = self.mirror_url + "/api"
         self.base_key_url = "%s/%s" % (self.base_url, self.api_key)
         self.language = language
         self.want_raw = want_raw
@@ -40,14 +39,13 @@ class TheTVDB(object):
         # Mirror selection got deprecated a while back, so tell it to skip the actual fetch.
         self.select_mirrors(False)
 
-
-    def select_mirrors(self, do_the_fetch = True):
-        #http://thetvdb.com/api/<apikey>/mirrors.xml
+    def select_mirrors(self, do_the_fetch=True):
+        # http://thetvdb.com/api/<apikey>/mirrors.xml
         url = "%s/mirrors.xml" % self.base_key_url
         self.xml_mirrors = []
         self.zip_mirrors = []
         try:
-            filt_func = lambda name, attrs: attrs if name == 'Mirror' else None
+            filt_func = lambda name, attrs: attrs if name == 'Mirror' else None  # noqa
             xml = self._get_xml_data(url, filt_func) if do_the_fetch else {}
             for mirror in xml.get("Mirror", []):
                 mirrorpath = mirror.get("mirrorpath", None)
@@ -63,9 +61,9 @@ class TheTVDB(object):
             pass
 
         if not self.xml_mirrors:
-            self.xml_mirrors = [ self.mirror_url ]
+            self.xml_mirrors = [self.mirror_url]
         if not self.zip_mirrors:
-            self.zip_mirrors = [ self.mirror_url ]
+            self.zip_mirrors = [self.mirror_url]
 
         self.xml_mirror_url = random.choice(self.xml_mirrors)
         self.zip_mirror_url = random.choice(self.zip_mirrors)
@@ -73,14 +71,11 @@ class TheTVDB(object):
         self.base_xml_url = "%s/api/%s" % (self.xml_mirror_url, self.api_key)
         self.base_zip_url = "%s/api/%s" % (self.zip_mirror_url, self.api_key)
 
-
     def _2show(self, attrs):
         return attrs if self.want_raw else TheTVDB.Show(attrs, self.mirror_url)
 
-
     def _2episode(self, attrs):
         return attrs if self.want_raw else TheTVDB.Episode(attrs, self.mirror_url)
-
 
     class Show(object):
         """A python object representing a thetvdb.com show record."""
@@ -89,7 +84,7 @@ class TheTVDB(object):
             self.id = node.get("id", "")
             self.name = node.get("SeriesName", "")
             self.overview = node.get("Overview", "")
-            self.genre = node.get("Genre", "") #[g for g in node.get("Genre", "").split("|") if g]
+            self.genre = node.get("Genre", "")  # [g for g in node.get("Genre", "").split("|") if g]
             self.actors = [a for a in node.get("Actors", "").split("|") if a]
             self.network = node.get("Network", "")
             self.content_rating = node.get("ContentRating", "")
@@ -101,7 +96,7 @@ class TheTVDB(object):
             # Air details
             self.first_aired = TheTVDB.convert_date(node.get("FirstAired", ""))
             self.airs_day = node.get("Airs_DayOfWeek", "")
-            self.airs_time = node.get("Airs_Time", "")#TheTVDB.convert_time(node.get("Airs_Time", ""))
+            self.airs_time = node.get("Airs_Time", "")  # TheTVDB.convert_time(node.get("Airs_Time", ""))
 
             # Main show artwork
             temp = node.get("banner", "")
@@ -129,11 +124,9 @@ class TheTVDB(object):
             self.last_updated_utime = int(TheTVDB.check(node.get("lastupdated", ""), '0'))
             self.last_updated = datetime.datetime.fromtimestamp(self.last_updated_utime)
 
-
         def __str__(self):
             import pprint
             return pprint.saferepr(self)
-
 
     class Episode(object):
         """A python object representing a thetvdb.com episode record."""
@@ -152,7 +145,7 @@ class TheTVDB(object):
             self.writer = node.get("Writer", "")
 
             # Air date
-            self.first_aired = node.get("FirstAired", "")#TheTVDB.convert_date(node.get("FirstAired", ""))
+            self.first_aired = node.get("FirstAired", "")  # TheTVDB.convert_date(node.get("FirstAired", ""))
 
             # DVD Information
             self.dvd_chapter = node.get("DVD_chapter", "")
@@ -166,7 +159,7 @@ class TheTVDB(object):
                 self.image = "%s/banners/%s" % (mirror_url, temp)
             else:
                 self.image = ''
-            #self.image = 'http://thetvdb.com/banners/' + node.get("filename", "")
+            # self.image = 'http://thetvdb.com/banners/' + node.get("filename", "")
 
             # Episode ordering information (normally for specials)
             self.airs_after_season = node.get("airsafter_season", "")
@@ -187,26 +180,23 @@ class TheTVDB(object):
             self.last_updated_utime = int(TheTVDB.check(node.get("lastupdated", ""), '0'))
             self.last_updated = datetime.datetime.fromtimestamp(self.last_updated_utime)
 
-
         def __str__(self):
             return repr(self)
-
 
     @staticmethod
     def check(value, ret=None):
         if value is None or value == '':
-            if ret == None:
+            if ret is None:
                 return ''
             else:
                 return ret
         else:
             return value
 
-
     @staticmethod
     def convert_time(time_string):
         """Convert a thetvdb time string into a datetime.time object."""
-        time_res = [re.compile(r"\D*(?P<hour>\d{1,2})(?::(?P<minute>\d{2}))?.*(?P<ampm>a|p)m.*", re.IGNORECASE), # 12 hour
+        time_res = [re.compile(r"\D*(?P<hour>\d{1,2})(?::(?P<minute>\d{2}))?.*(?P<ampm>a|p)m.*", re.IGNORECASE),  # 12 hour
                     re.compile(r"\D*(?P<hour>\d{1,2}):?(?P<minute>\d{2}).*")]                                     # 24 hour
 
         for r in time_res:
@@ -235,7 +225,6 @@ class TheTVDB(object):
 
         return None
 
-
     @staticmethod
     def convert_date(date_string):
         """Convert a thetvdb date string into a datetime.date object."""
@@ -247,7 +236,6 @@ class TheTVDB(object):
 
         return first_aired
 
-
     # language can be "all", "en", "fr", etc.
     def get_matching_shows(self, show_name, language=None, want_raw=False):
         """Get a list of shows matching show_name."""
@@ -256,79 +244,70 @@ class TheTVDB(object):
             get_args['language'] = language
         else:
             get_args['language'] = self.language
-        get_args = urllib.parse.urlencode(get_args, doseq=True)
+        get_args = urllib_parse.urlencode(get_args, doseq=True)
         url = "%s/GetSeries.php?%s" % (self.base_url, get_args)
         if want_raw:
-            filt_func = lambda name, attrs: attrs if name == "Series" else None
+            filt_func = lambda name, attrs: attrs if name == "Series" else None  # noqa
         else:
-            filt_func = lambda name, attrs: (attrs.get("seriesid", ""), attrs.get("SeriesName", ""), attrs.get("IMDB_ID", "")) if name == "Series" else None
+            filt_func = lambda name, attrs: (attrs.get("seriesid", ""), attrs.get("SeriesName", ""), attrs.get("IMDB_ID", "")) if name == "Series" else None  # noqa
         xml = self._get_xml_data(url, filt_func)
         return xml.get('Series', [])
-
 
     def get_show(self, show_id):
         """Get the show object matching this show_id."""
         url = "%s/series/%s/%s.xml" % (self.base_xml_url, show_id, self.language)
         return self._get_show_by_url(url)
 
-
     def get_show_by_imdb(self, imdb_id):
         """Get the show object matching this show_id."""
-        #url = "%s/series/%s/%s.xml" % (self.base_key_url, show_id, "el")
+        # url = "%s/series/%s/%s.xml" % (self.base_key_url, show_id, "el")
         url = "%s/GetSeriesByRemoteID.php?imdbid=%s" % (self.base_url, imdb_id)
         show = self._get_show_by_url(url)
         if show:
             return show['id'] if self.want_raw else show.id
         return ''
 
-
     def _get_show_by_url(self, url):
-        filt_func = lambda name, attrs: self._2show(attrs) if name == "Series" else None
+        filt_func = lambda name, attrs: self._2show(attrs) if name == "Series" else None  # noqa
         xml = self._get_xml_data(url, filt_func)
         return xml['Series'][0] if 'Series' in xml else None
-
 
     def get_episode(self, episode_id):
         """Get the episode object matching this episode_id."""
         url = "%s/episodes/%s" % (self.base_xml_url, episode_id)
         return self._get_episode_by_url(url)
 
-
     def get_episode_by_airdate(self, show_id, aired):
         """Get the episode object matching this episode_id."""
-        #url = "%s/series/%s/default/%s/%s" % (self.base_key_url, show_id, season_num, ep_num)
+        # url = "%s/series/%s/default/%s/%s" % (self.base_key_url, show_id, season_num, ep_num)
         '''http://www.thetvdb.com/api/GetEpisodeByAirDate.php?apikey=1D62F2F90030C444&seriesid=71256&airdate=2010-03-29'''
         url = "%s/GetEpisodeByAirDate.php?apikey=1D62F2F90030C444&seriesid=%s&airdate=%s" % (self.base_url, show_id, aired)
         return self._get_episode_by_url(url)
-
 
     def get_episode_by_season_ep(self, show_id, season_num, ep_num):
         """Get the episode object matching this episode_id."""
         url = "%s/series/%s/default/%s/%s" % (self.base_xml_url, show_id, season_num, ep_num)
         return self._get_episode_by_url(url)
 
-
     def _get_episode_by_url(self, url):
-        filt_func = lambda name, attrs: self._2episode(attrs) if name == "Episode" else None
+        filt_func = lambda name, attrs: self._2episode(attrs) if name == "Episode" else None  # noqa
         xml = self._get_xml_data(url, filt_func)
         return xml['Episode'][0] if 'Episode' in xml else None
-
 
     def get_show_and_episodes(self, show_id):
         """Get the show object and all matching episode objects for this show_id."""
         url = "%s/series/%s/all/%s.zip" % (self.base_zip_url, show_id, self.language)
         zip_name = '%s.xml' % self.language
-        filt_func = lambda name, attrs: self._2episode(attrs) if name == "Episode" else self._2show(attrs) if name == "Series" else None
+        filt_func = lambda name, attrs: self._2episode(attrs) if name == "Episode" else self._2show(attrs) if name == "Series" else None  # noqa
         xml = self._get_xml_data(url, filt_func, zip_name=zip_name)
         if 'Series' not in xml:
             return None
         return (xml['Series'][0], xml.get('Episode', []))
 
-
     def get_show_image_choices(self, show_id):
         """Get a list of image urls and types relating to this show."""
         url = "%s/series/%s/banners.xml" % (self.base_xml_url, show_id)
-        filt_func = lambda name, attrs: attrs if name == "Banner" else None
+        filt_func = lambda name, attrs: attrs if name == "Banner" else None  # noqa
         xml = self._get_xml_data(url, filt_func)
 
         images = []
@@ -337,25 +316,21 @@ class TheTVDB(object):
             banner_season = banner["Season"] if banner_type == 'season' else ''
             banner_url = "%s/banners/%s" % (self.mirror_url, banner["BannerPath"])
             images.append((banner_url, banner_type, banner_season))
-
         return images
 
-
-    def get_updated_shows(self, period = "day"):
+    def get_updated_shows(self, period="day"):
         """Get a list of show ids which have been updated within this period."""
-        filt_func = lambda name, attrs: attrs["id"] if name == "Series" else None
+        filt_func = lambda name, attrs: attrs["id"] if name == "Series" else None  # noqa
         xml = self._get_update_info(period, filt_func)
         return xml.get("Series", [])
 
-
-    def get_updated_episodes(self, period = "day"):
+    def get_updated_episodes(self, period="day"):
         """Get a list of episode ids which have been updated within this period."""
-        filt_func = lambda name, attrs: (attrs["Series"], attrs["id"]) if name == "Episode" else None
+        filt_func = lambda name, attrs: (attrs["Series"], attrs["id"]) if name == "Episode" else None  # noqa
         xml = self._get_update_info(period, filt_func)
         return xml.get("Episode", [])
 
-
-    def get_updates(self, callback, period = "day"):
+    def get_updates(self, callback, period="day"):
         """Return all series, episode, and banner updates w/o having to have it
         all in memory at once.  Also returns the Data timestamp.  The callback
         routine should be defined as: my_callback(name, attrs) where name will
@@ -363,17 +338,15 @@ class TheTVDB(object):
         of the values (e.g. id, time, etc)."""
         self._get_update_info(period, callback=callback)
 
-
-    def _get_update_info(self, period, filter_func = None, callback = None):
+    def _get_update_info(self, period, filter_func=None, callback=None):
         url = "%s/updates/updates_%s.zip" % (self.base_zip_url, period)
         zip_name = 'updates_%s.xml' % period
         return self._get_xml_data(url, filter_func, zip_name, callback)
 
-
-    def _get_xml_data(self, url, filter_func = None, zip_name = None, callback = None):
-        data = urllib.request.urlopen(url)
+    def _get_xml_data(self, url, filter_func=None, zip_name=None, callback=None):
+        data = urllib_request.urlopen(url)
         if zip_name:
-            zipfile = ZipFile(StringIO(data.read()))
+            zipfile = ZipFile(six.BytesIO(data.read()))
             data = zipfile.open(zip_name)
         if not data:
             raise Exception("Failed to get any data")
@@ -390,7 +363,7 @@ class ExpatParseXml(object):
         self.el_attr_name = None
         self.el_attrs = None
         self.el_callback = callback if callback else self.stash_xml
-        self.el_filter_func = filter_func # only used by stash_xml()
+        self.el_filter_func = filter_func  # only used by stash_xml()
         self.xml = {}
 
         self.parser = expat.ParserCreate()
@@ -437,4 +410,4 @@ class ExpatParseXml(object):
         if name in self.xml:
             self.xml[name].append(attrs)
         else:
-            self.xml[name] = [ attrs ]
+            self.xml[name] = [attrs]
