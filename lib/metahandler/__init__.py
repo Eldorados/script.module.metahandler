@@ -33,7 +33,7 @@ To lookup a tv show seasons:
 
 To lookup an episode:
     mh.get_episode_meta(title, imdb_id, season, episode, air_date=, episode_title=)
-     
+
 
 Check each function for a full description of args and return values
 

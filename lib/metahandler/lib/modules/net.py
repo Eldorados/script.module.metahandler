@@ -15,11 +15,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 '''
-from six.moves import http_cookiejar
 import gzip
 import re
 import six
-from six.moves import urllib_request, urllib_parse
+from six.moves import urllib_request, urllib_parse, http_cookiejar
 import socket
 # Set Global timeout - Useful for slow connections and Putlocker.
 socket.setdefaulttimeout(10)
@@ -114,7 +113,7 @@ class Net:
     def _update_opener(self):
         '''
         Builds and installs a new opener to be used by all future calls to
-        :func:`urllib2.urlopen`.
+        :func:`urllib_request.urlopen`.
         '''
         handlers = [urllib_request.HTTPCookieProcessor(self._cj), urllib_request.HTTPBasicAuthHandler()]
 
@@ -138,6 +137,17 @@ class Net:
                 ctx = ssl.create_default_context()
                 ctx.check_hostname = False
                 ctx.verify_mode = ssl.CERT_NONE
+                if self._http_debug:
+                    handlers += [urllib_request.HTTPSHandler(context=ctx, debuglevel=1)]
+                else:
+                    handlers += [urllib_request.HTTPSHandler(context=ctx)]
+            except:
+                pass
+        else:
+            try:
+                import ssl
+                import certifi
+                ctx = ssl.create_default_context(cafile=certifi.where())
                 if self._http_debug:
                     handlers += [urllib_request.HTTPSHandler(context=ctx, debuglevel=1)]
                 else:
@@ -294,7 +304,7 @@ class HttpResponse:
         '''
         Args:
             response (:class:`mimetools.Message`): The object returned by a call
-            to :func:`urllib2.urlopen`.
+            to :func:`urllib_request.urlopen`.
         '''
         self._response = response
 

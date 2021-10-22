@@ -19,16 +19,19 @@
 from metahandler.lib.modules import db_utils
 from metahandler.lib.modules import log_utils
 from metahandler.lib.modules import kodi
+# from metahandler.lib.modules import url_dispatcher
+import sys
 
 logger = log_utils.Logger.get_logger()
+
 
 def __enum(**enums):
     return type('Enum', (), enums)
 
+
 MODES = __enum(RESET_CACHE='reset_cache')
 
 
-@url_dispatcher.register(MODES.RESET_CACHE)
 def reset_cache():
     if db_utils.delete_cache_db():
         kodi.notify(msg=kodi.i18n('cache_reset'))
@@ -37,7 +40,8 @@ def reset_cache():
 
 
 def main(argv=None):
-    if sys.argv: argv = sys.argv
+    if sys.argv:
+        argv = sys.argv
     queries = kodi.parse_query(sys.argv[2])
     logger.log('Version: |%s| Queries: |%s|' % (kodi.get_version(), queries))
     logger.log('Args: |%s|' % (argv))
@@ -48,7 +52,7 @@ def main(argv=None):
         return
 
     mode = queries.get('mode', None)
-    url_dispatcher.dispatch(mode, queries)
+    # url_dispatcher.dispatch(mode, queries)
 
 
 if __name__ == '__main__':
