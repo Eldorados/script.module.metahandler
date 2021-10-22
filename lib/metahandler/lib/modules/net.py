@@ -143,6 +143,17 @@ class Net:
                     handlers += [urllib_request.HTTPSHandler(context=ctx)]
             except:
                 pass
+        else:
+            try:
+                import ssl
+                import certifi
+                ctx = ssl.create_default_context(cafile=certifi.where())
+                if self._http_debug:
+                    handlers += [urllib_request.HTTPSHandler(context=ctx, debuglevel=1)]
+                else:
+                    handlers += [urllib_request.HTTPSHandler(context=ctx)]
+            except:
+                pass
 
         opener = urllib_request.build_opener(*handlers)
         urllib_request.install_opener(opener)
